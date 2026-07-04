@@ -3,31 +3,33 @@
 
   const API_BASE = "https://api.zdf.de";
   const DOKU_PATH = "/zdf/dokumentation";
-  const RESULTS_PER_SECTION = 20;
+  const RESULTS_PER_SECTION = 30;
+
+  let currentFilter = "";
+  let apiToken = null;
 
   function extractApiToken() {
     const html = document.documentElement.innerHTML;
-    // Token appears as apiToken\":\"xxx\" (JSON-escaped inside script tags)
     const escaped = html.match(/apiToken\\":\\"([^\\]+)\\"/);
     if (escaped) return escaped[1];
-    // Fallback: unescaped form
     const plain = html.match(/"apiToken":"([^"]+)"/);
     if (plain) return plain[1];
     return null;
   }
 
-  async function apiFetch(path, token) {
+  async function apiFetch(path) {
+    if (!apiToken) return null;
     const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
     const res = await fetch(url, {
-      headers: { "Api-Auth": `Bearer ${token}` },
+      headers: { "Api-Auth": `Bearer ${apiToken}` },
     });
     if (!res.ok) throw new Error(`API ${res.status}: ${url}`);
     return res.json();
   }
 
-  async function fetchNewestDokus(token, { limit = RESULTS_PER_SECTION } = {}) {
+  async function fetchDokus({ query = "", limit = RESULTS_PER_SECTION } = {}) {
     const params = new URLSearchParams({
-      q: "",
+      q: query,
       hasVideo: "true",
       sortOrder: "desc",
       sortBy: "date",
@@ -36,25 +38,11 @@
       limit: String(limit),
       types: "page-video",
     });
-    const data = await apiFetch(`/search/documents?${params}`, token);
-    return parseSearchResults(data);
-  }
-
-  async function fetchVorabDokus(token) {
-    const now = new Date().toISOString();
-    const params = new URLSearchParams({
-      q: "",
-      hasVideo: "true",
-      sortOrder: "desc",
-      sortBy: "date",
-      paths: DOKU_PATH,
-      page: "1",
-      limit: "20",
-      types: "page-video",
-    });
-    const data = await apiFetch(`/search/documents?${params}`, token);
-    const results = parseSearchResults(data);
-    return results.filter((r) => r.editorialDate && r.editorialDate > now);
+    const data = await apiFetch(`/search/documents?${params}`);
+    return {
+      total: data.totalResultsCount || 0,
+      items: parseSearchResults(data),
+    };
   }
 
   function parseSearchResults(data) {
@@ -72,29 +60,30 @@
         contentType: target.contentType || "",
         category: category.title || "",
         url: target.webCanonical || `https://www.zdf.de${target.self || ""}`,
-        image: pickImage(image.layouts),
-        brand: extractBrand(target),
+        imagePortrait: pickImage(image.layouts, "portrait"),
+        imageLandscape: pickImage(image.layouts, "landscape"),
       };
     });
   }
 
-  function pickImage(layouts) {
+  function pickImage(layouts, mode) {
     if (!layouts) return "";
+    if (mode === "portrait") {
+      return (
+        layouts["276x311"] ||
+        layouts["240x270"] ||
+        layouts["640x720"] ||
+        layouts["225x400"] ||
+        layouts["384x216"] ||
+        ""
+      );
+    }
     return (
       layouts["384x216"] ||
       layouts["768x432"] ||
       layouts["276x155"] ||
-      layouts["1280x720"] ||
-      Object.values(layouts)[0] ||
       ""
     );
-  }
-
-  function extractBrand(target) {
-    const brand = target["http://zdf.de/rels/brand"];
-    if (brand) return brand.title || "";
-    const tracking = target.trackingTitle || "";
-    return "";
   }
 
   function formatDate(isoStr) {
@@ -123,8 +112,16 @@
     const daysLeft = Math.round((end - now) / (1000 * 60 * 60 * 24));
 
     if (daysLeft < 0) return null;
-    if (daysLeft <= 3) return { text: `Noch ${daysLeft} Tag${daysLeft !== 1 ? "e" : ""}`, soon: true };
-    if (daysLeft <= 30) return { text: `Verfügbar bis ${end.toLocaleDateString("de-DE", { day: "numeric", month: "short" })}`, soon: false };
+    if (daysLeft <= 3)
+      return {
+        text: `Noch ${daysLeft} Tag${daysLeft !== 1 ? "e" : ""}`,
+        soon: true,
+      };
+    if (daysLeft <= 30)
+      return {
+        text: `Bis ${end.toLocaleDateString("de-DE", { day: "numeric", month: "short" })}`,
+        soon: false,
+      };
     return {
       text: `Bis ${end.toLocaleDateString("de-DE", { day: "numeric", month: "short", year: "numeric" })}`,
       soon: false,
@@ -134,10 +131,24 @@
   function formatDuration(seconds) {
     if (!seconds) return null;
     const min = Math.round(seconds / 60);
-    if (min < 60) return `${min} Min`;
+    if (min < 60) return `${min} min`;
     const h = Math.floor(min / 60);
     const m = min % 60;
-    return m > 0 ? `${h} Std ${m} Min` : `${h} Std`;
+    return m > 0 ? `${h}:${String(m).padStart(2, "0")} Std` : `${h} Std`;
+  }
+
+  function isNew(editorialDate) {
+    if (!editorialDate) return false;
+    const d = new Date(editorialDate);
+    const now = new Date();
+    const diffDays = (now - d) / (1000 * 60 * 60 * 24);
+    return diffDays >= 0 && diffDays <= 3;
+  }
+
+  function escapeHtml(str) {
+    const el = document.createElement("span");
+    el.textContent = str;
+    return el.innerHTML;
   }
 
   function createCard(item) {
@@ -145,19 +156,28 @@
     card.className = "zk-card";
     card.href = item.url;
 
-    const isVorab = item.editorialDate && new Date(item.editorialDate) > new Date();
+    const isVorab =
+      item.editorialDate && new Date(item.editorialDate) > new Date();
     const availability = formatAvailability(item.endDate);
     const duration = formatDuration(item.duration);
+    const neu = isNew(item.editorialDate);
+
+    const img = item.imagePortrait || item.imageLandscape;
+
+    let badge = "";
+    if (isVorab) badge = '<span class="zk-card-badge zk-card-badge--vorab">Vorab</span>';
+    else if (availability?.soon) badge = '<span class="zk-card-badge zk-card-badge--expiring">Läuft ab</span>';
+    else if (neu) badge = '<span class="zk-card-badge zk-card-badge--neu">Neu</span>';
 
     card.innerHTML = `
       <div class="zk-card-image">
-        ${item.image ? `<img src="${item.image}" alt="" loading="lazy">` : ""}
-        ${isVorab ? '<span class="zk-card-badge zk-card-badge--vorab">Vorab</span>' : ""}
-        ${availability?.soon ? '<span class="zk-card-badge zk-card-badge--expiring">Läuft ab</span>' : ""}
+        ${img ? `<img src="${escapeHtml(img)}" alt="" loading="lazy">` : ""}
+        ${badge}
         ${duration ? `<span class="zk-card-duration">${duration}</span>` : ""}
+        <div class="zk-card-gradient"></div>
+        <div class="zk-card-title-overlay">${escapeHtml(item.title)}</div>
       </div>
       <div class="zk-card-body">
-        <p class="zk-card-title">${escapeHtml(item.title)}</p>
         <p class="zk-card-meta">${escapeHtml(item.category)}${item.editorialDate ? ` · ${formatDate(item.editorialDate)}` : ""}</p>
         ${availability ? `<p class="zk-card-availability${availability.soon ? " zk-card-availability--soon" : ""}">${availability.text}</p>` : ""}
       </div>
@@ -165,134 +185,277 @@
     return card;
   }
 
-  function createSection(title, subtitle) {
+  function createSection(id, title) {
     const section = document.createElement("section");
     section.className = "zk-section";
-    section.innerHTML = `
-      <div class="zk-section-header">
-        <h2 class="zk-section-title">${escapeHtml(title)}</h2>
-        ${subtitle ? `<span class="zk-section-subtitle">${escapeHtml(subtitle)}</span>` : ""}
-      </div>
-      <div class="zk-rail"></div>
-    `;
+    section.id = id;
+
+    const header = document.createElement("div");
+    header.className = "zk-section-header";
+
+    const h2 = document.createElement("h2");
+    h2.className = "zk-section-title";
+    h2.textContent = title;
+    header.appendChild(h2);
+
+    const count = document.createElement("span");
+    count.className = "zk-section-count";
+    header.appendChild(count);
+
+    section.appendChild(header);
+
+    const rail = document.createElement("div");
+    rail.className = "zk-rail";
+    section.appendChild(rail);
+
     return section;
   }
 
-  function createLoading() {
+  function setLoading(section) {
+    const rail = section.querySelector(".zk-rail");
+    rail.innerHTML = "";
     const el = document.createElement("div");
     el.className = "zk-loading";
-    el.innerHTML = '<div class="zk-loading-spinner"></div><span>Lade Inhalte...</span>';
-    return el;
+    el.innerHTML =
+      '<div class="zk-loading-spinner"></div><span>Lade Inhalte…</span>';
+    rail.appendChild(el);
   }
 
-  function escapeHtml(str) {
-    const div = document.createElement("div");
-    div.textContent = str;
-    return div.innerHTML;
+  function setError(section, msg) {
+    const rail = section.querySelector(".zk-rail");
+    rail.innerHTML = "";
+    const el = document.createElement("div");
+    el.className = "zk-error";
+    el.textContent = msg;
+    rail.appendChild(el);
   }
 
-  function findInjectionPoint() {
+  function setEmpty(section, msg) {
+    const rail = section.querySelector(".zk-rail");
+    rail.innerHTML = "";
+    const el = document.createElement("div");
+    el.className = "zk-empty";
+    el.textContent = msg;
+    rail.appendChild(el);
+  }
+
+  function renderCards(section, items, total) {
+    const rail = section.querySelector(".zk-rail");
+    const countEl = section.querySelector(".zk-section-count");
+    rail.innerHTML = "";
+    items.forEach((item) => rail.appendChild(createCard(item)));
+    if (countEl && total) {
+      countEl.textContent = `${total} verfügbar`;
+    }
+  }
+
+  function findGridContainer() {
+    // The grid starts after the hero/filter section closes.
+    // Look for the first sibling of the hero section wrapper that contains the card grid.
     const hero = document.querySelector('[data-testid="hero"]');
-    if (hero) {
-      let target = hero;
-      while (target.parentElement && target.parentElement.tagName !== "MAIN") {
-        target = target.parentElement;
-      }
-      return { element: target, position: "afterend" };
+    if (!hero) return null;
+
+    // Walk up to find the hero's top-level wrapper (direct child of main)
+    let heroWrapper = hero;
+    while (
+      heroWrapper.parentElement &&
+      heroWrapper.parentElement.tagName !== "MAIN"
+    ) {
+      heroWrapper = heroWrapper.parentElement;
     }
 
-    const main = document.querySelector("main");
-    if (main && main.firstElementChild) {
-      return { element: main.firstElementChild, position: "afterend" };
-    }
+    // The next sibling should be the grid container
+    let next = heroWrapper.nextElementSibling;
+    if (next) return { before: next };
 
     return null;
   }
 
+  function detectActiveFilter() {
+    // The ZDF filter tabs are buttons/links inside the page.
+    // When a category is active, it typically has a different visual state.
+    // We observe the URL or the active tab text.
+    const url = window.location.href;
+    const hashMatch = url.match(/[#?].*filter=([^&]+)/);
+    if (hashMatch) return decodeURIComponent(hashMatch[1]);
+
+    // Try to read the active tab from the DOM
+    // The filter tabs typically have an aria-selected or similar attribute
+    const tabs = document.querySelectorAll(
+      'button[role="tab"], [role="tablist"] button'
+    );
+    for (const tab of tabs) {
+      if (
+        tab.getAttribute("aria-selected") === "true" ||
+        tab.classList.contains("active")
+      ) {
+        const text = tab.textContent.trim();
+        if (text && text !== "Alle Inhalte") return text;
+      }
+    }
+
+    // Fallback: look for an underlined or differently styled tab
+    // ZDF uses a bottom border on the active filter
+    const allButtons = document.querySelectorAll("button");
+    for (const btn of allButtons) {
+      const text = btn.textContent.trim();
+      const style = window.getComputedStyle(btn);
+      const borderBottom = style.borderBottomColor;
+      // Active tabs have a white or orange bottom border
+      if (
+        borderBottom &&
+        borderBottom !== "rgba(0, 0, 0, 0)" &&
+        borderBottom !== "transparent"
+      ) {
+        const CATEGORIES = [
+          "Geschichte", "Gesellschaft", "Kultur", "Politik", "Sport",
+          "Reise", "Natur", "True Crime", "Wirtschaft", "Stars",
+          "Wissen", "Musik", "Gesundheit",
+        ];
+        if (CATEGORIES.includes(text)) return text;
+      }
+    }
+
+    return "";
+  }
+
+  async function loadSections() {
+    const container = document.getElementById("zk-container");
+    if (!container) return;
+
+    const neueDokus = container.querySelector("#zk-neue-dokus");
+    const vorab = container.querySelector("#zk-vorab");
+
+    const filter = detectActiveFilter();
+    currentFilter = filter;
+
+    setLoading(neueDokus);
+    if (vorab) setLoading(vorab);
+
+    const now = new Date().toISOString();
+
+    try {
+      const result = await fetchDokus({ query: filter, limit: RESULTS_PER_SECTION });
+      // If the filter changed while we were loading, discard
+      if (detectActiveFilter() !== currentFilter) return;
+
+      const vorabItems = result.items.filter(
+        (r) => r.editorialDate && r.editorialDate > now
+      );
+      const neueItems = result.items.filter(
+        (r) => !r.editorialDate || r.editorialDate <= now
+      );
+
+      if (vorab) {
+        if (vorabItems.length === 0) {
+          vorab.style.display = "none";
+        } else {
+          vorab.style.display = "";
+          renderCards(vorab, vorabItems);
+        }
+      }
+
+      if (neueItems.length === 0) {
+        setEmpty(
+          neueDokus,
+          filter
+            ? `Keine neuen Dokus in "${filter}" gefunden.`
+            : "Keine neuen Dokus gefunden."
+        );
+      } else {
+        const title = filter ? `Neue Dokus: ${filter}` : "Neue Dokus";
+        neueDokus.querySelector(".zk-section-title").textContent = title;
+        renderCards(neueDokus, neueItems, result.total);
+      }
+    } catch (err) {
+      console.error("[ZDF Klassik]", err);
+      setError(neueDokus, "Inhalte konnten nicht geladen werden.");
+      if (vorab) setError(vorab, "");
+    }
+  }
+
+  function observeFilterChanges() {
+    // Watch for clicks on filter tabs and URL changes
+    let lastFilter = "";
+
+    const check = () => {
+      const filter = detectActiveFilter();
+      if (filter !== lastFilter) {
+        lastFilter = filter;
+        loadSections();
+      }
+    };
+
+    // Click listener on the body (delegated)
+    document.body.addEventListener("click", () => {
+      // Delay to let React update the DOM/URL
+      setTimeout(check, 300);
+    });
+
+    // Also watch for popstate (browser navigation)
+    window.addEventListener("popstate", () => setTimeout(check, 300));
+
+    // MutationObserver on the main content area for React re-renders
+    const main = document.querySelector("main");
+    if (main) {
+      const observer = new MutationObserver(() => {
+        setTimeout(check, 200);
+      });
+      observer.observe(main, { childList: true, subtree: false });
+    }
+  }
+
   async function init() {
-    const token = extractApiToken();
-    if (!token) {
+    if (document.getElementById("zk-container")) return;
+
+    apiToken = extractApiToken();
+    if (!apiToken) {
       console.warn("[ZDF Klassik] Kein API-Token gefunden");
       return;
     }
 
-    const injection = findInjectionPoint();
-    if (!injection) {
-      console.warn("[ZDF Klassik] Kein Injektionspunkt gefunden");
+    const grid = findGridContainer();
+    if (!grid) {
+      console.warn("[ZDF Klassik] Grid-Container nicht gefunden");
       return;
     }
 
     const container = document.createElement("div");
     container.id = "zk-container";
 
-    const neueDokusSection = createSection("Neue Dokus", "Chronologisch nach Erscheinungsdatum");
-    const vorabSection = createSection("Vorab verfügbar", "Bereits vor TV-Ausstrahlung streambar");
-
-    const neueDokusLoading = createLoading();
-    neueDokusSection.querySelector(".zk-rail").appendChild(neueDokusLoading);
-
-    const vorabLoading = createLoading();
-    vorabSection.querySelector(".zk-rail").appendChild(vorabLoading);
+    const vorabSection = createSection("zk-vorab", "Vorab verfügbar");
+    const neueDokusSection = createSection("zk-neue-dokus", "Neue Dokus");
 
     container.appendChild(vorabSection);
-
-    const divider1 = document.createElement("hr");
-    divider1.className = "zk-divider";
-    container.appendChild(divider1);
-
     container.appendChild(neueDokusSection);
 
-    const divider2 = document.createElement("hr");
-    divider2.className = "zk-divider";
-    container.appendChild(divider2);
+    grid.before.parentNode.insertBefore(container, grid.before);
 
-    injection.element.insertAdjacentElement(injection.position, container);
-
-    try {
-      const vorabResults = await fetchVorabDokus(token);
-      const vorabRail = vorabSection.querySelector(".zk-rail");
-      vorabRail.innerHTML = "";
-
-      if (vorabResults.length === 0) {
-        vorabSection.style.display = "none";
-        divider1.style.display = "none";
-      } else {
-        vorabResults.forEach((item) => vorabRail.appendChild(createCard(item)));
-      }
-    } catch (err) {
-      console.error("[ZDF Klassik] Vorab-Fehler:", err);
-      const vorabRail = vorabSection.querySelector(".zk-rail");
-      vorabRail.innerHTML = '<div class="zk-error">Vorab-Inhalte konnten nicht geladen werden.</div>';
-    }
-
-    try {
-      const neueDokus = await fetchNewestDokus(token);
-      const neueDokusRail = neueDokusSection.querySelector(".zk-rail");
-      neueDokusRail.innerHTML = "";
-      neueDokus.forEach((item) => neueDokusRail.appendChild(createCard(item)));
-    } catch (err) {
-      console.error("[ZDF Klassik] Neue Dokus Fehler:", err);
-      const neueDokusRail = neueDokusSection.querySelector(".zk-rail");
-      neueDokusRail.innerHTML = '<div class="zk-error">Inhalte konnten nicht geladen werden.</div>';
-    }
+    await loadSections();
+    observeFilterChanges();
   }
 
   function tryInit(attempts = 0) {
     if (document.getElementById("zk-container")) return;
-    if (findInjectionPoint()) {
+    if (findGridContainer()) {
       init();
       return;
     }
-    if (attempts > 20) {
-      console.warn("[ZDF Klassik] Gave up waiting for injection point");
+    if (attempts > 30) {
+      console.warn("[ZDF Klassik] Gave up waiting for grid container");
       return;
     }
     setTimeout(() => tryInit(attempts + 1), 300);
   }
 
-  if (document.readyState === "complete" || document.readyState === "interactive") {
+  if (
+    document.readyState === "complete" ||
+    document.readyState === "interactive"
+  ) {
     setTimeout(tryInit, 300);
   } else {
-    document.addEventListener("DOMContentLoaded", () => setTimeout(tryInit, 300));
+    document.addEventListener("DOMContentLoaded", () =>
+      setTimeout(tryInit, 300)
+    );
   }
 })();

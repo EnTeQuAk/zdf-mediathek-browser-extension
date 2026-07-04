@@ -1,34 +1,40 @@
+#zk-container {
+  padding: 0 3rem 1.5rem;
+}
+
 .zk-section {
-  padding: 2rem 3rem;
-  position: relative;
+  margin-bottom: 2rem;
 }
 
 .zk-section-header {
   display: flex;
   align-items: baseline;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 0.625rem;
+  margin-bottom: 0.75rem;
 }
 
 .zk-section-title {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: #fff;
   margin: 0;
+  letter-spacing: -0.01em;
 }
 
-.zk-section-subtitle {
-  font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.5);
+.zk-section-count {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 400;
 }
 
 .zk-rail {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
-  padding-bottom: 0.5rem;
+  scroll-behavior: smooth;
+  padding-bottom: 4px;
 }
 
 .zk-rail::-webkit-scrollbar {
@@ -36,43 +42,58 @@
 }
 
 .zk-card {
-  flex: 0 0 220px;
+  flex: 0 0 200px;
   scroll-snap-align: start;
   text-decoration: none;
   color: inherit;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease;
+  position: relative;
 }
 
 .zk-card:hover {
-  transform: scale(1.03);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  transform: scale(1.04);
+}
+
+.zk-card:focus-visible {
+  outline: 2px solid #fa7d19;
+  outline-offset: 2px;
 }
 
 .zk-card-image {
   position: relative;
-  aspect-ratio: 16 / 9;
-  background: #1a1a1a;
+  aspect-ratio: 8 / 9;
+  background: #1c1e22;
   overflow: hidden;
+  border-radius: 12px;
 }
 
 .zk-card-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: opacity 0.3s ease;
+}
+
+.zk-card-image img[src=""] {
+  opacity: 0;
 }
 
 .zk-card-badge {
   position: absolute;
-  top: 8px;
-  left: 8px;
-  background: rgba(0, 0, 0, 0.75);
+  top: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   color: #fff;
   font-size: 0.6875rem;
-  padding: 2px 6px;
+  font-weight: 600;
+  padding: 3px 8px;
   border-radius: 4px;
-  font-weight: 500;
+  letter-spacing: 0.02em;
+  z-index: 2;
 }
 
 .zk-card-badge--vorab {
@@ -81,45 +102,71 @@
 }
 
 .zk-card-badge--expiring {
-  background: #c0392b;
+  background: rgba(192, 57, 43, 0.9);
+}
+
+.zk-card-badge--neu {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .zk-card-duration {
   position: absolute;
-  bottom: 6px;
-  right: 6px;
-  background: rgba(0, 0, 0, 0.8);
+  bottom: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.75);
   color: #fff;
   font-size: 0.6875rem;
-  padding: 2px 5px;
-  border-radius: 3px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 4px;
+  z-index: 2;
 }
 
-.zk-card-body {
-  padding: 0.625rem 0.25rem;
+.zk-card-gradient {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, transparent 100%);
+  z-index: 1;
+  pointer-events: none;
 }
 
-.zk-card-title {
+.zk-card-title-overlay {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  right: 10px;
+  z-index: 2;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #fff;
-  margin: 0 0 0.25rem;
+  line-height: 1.25;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.zk-card-body {
+  padding: 0.5rem 0.125rem 0;
 }
 
 .zk-card-meta {
   font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.5);
   margin: 0;
+  line-height: 1.4;
 }
 
 .zk-card-availability {
   font-size: 0.6875rem;
-  color: rgba(255, 255, 255, 0.4);
-  margin: 0.25rem 0 0;
+  color: rgba(255, 255, 255, 0.35);
+  margin: 0.125rem 0 0;
 }
 
 .zk-card-availability--soon {
@@ -130,15 +177,15 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.875rem;
-  padding: 1rem 0;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.8125rem;
+  padding: 2rem 0;
 }
 
 .zk-loading-spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
   border-top-color: #fa7d19;
   border-radius: 50%;
   animation: zk-spin 0.8s linear infinite;
@@ -149,43 +196,14 @@
 }
 
 .zk-error {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.8125rem;
   padding: 1rem 0;
 }
 
-.zk-filters {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-}
-
-.zk-filter-btn {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.8);
+.zk-empty {
+  color: rgba(255, 255, 255, 0.35);
   font-size: 0.8125rem;
-  padding: 0.375rem 0.75rem;
-  border-radius: 100px;
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
-}
-
-.zk-filter-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.zk-filter-btn--active {
-  background: #fa7d19;
-  border-color: #fa7d19;
-  color: #000;
-  font-weight: 600;
-}
-
-.zk-divider {
-  border: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  margin: 0;
+  padding: 1rem 0;
+  font-style: italic;
 }
