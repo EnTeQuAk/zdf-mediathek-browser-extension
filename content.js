@@ -250,23 +250,26 @@
   }
 
   function findGridContainer() {
-    // The grid starts after the hero/filter section closes.
-    // Look for the first sibling of the hero section wrapper that contains the card grid.
     const hero = document.querySelector('[data-testid="hero"]');
     if (!hero) return null;
 
-    // Walk up to find the hero's top-level wrapper (direct child of main)
-    let heroWrapper = hero;
-    while (
-      heroWrapper.parentElement &&
-      heroWrapper.parentElement.tagName !== "MAIN"
-    ) {
-      heroWrapper = heroWrapper.parentElement;
+    // Walk up from the hero, checking for a next sibling at each level.
+    // The SSR HTML nests hero and grid differently than the hydrated DOM,
+    // so we check every ancestor until we hit <main>.
+    let el = hero;
+    while (el && el.parentElement) {
+      if (el.nextElementSibling) {
+        return { before: el.nextElementSibling };
+      }
+      if (el.parentElement.tagName === "MAIN") break;
+      el = el.parentElement;
     }
 
-    // The next sibling should be the grid container
-    let next = heroWrapper.nextElementSibling;
-    if (next) return { before: next };
+    // Fallback: append to the end of main's first child
+    const main = document.querySelector("main");
+    if (main && main.firstElementChild) {
+      return { parent: main.firstElementChild };
+    }
 
     return null;
   }
@@ -429,8 +432,11 @@
     container.appendChild(vorabSection);
     container.appendChild(neueDokusSection);
 
-    grid.before.parentNode.insertBefore(container, grid.before);
-
+    if (grid.before) {
+      grid.before.parentNode.insertBefore(container, grid.before);
+    } else {
+      grid.parent.appendChild(container);
+    }
     await loadSections();
     observeFilterChanges();
   }
