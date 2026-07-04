@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "ZDF Klassik",
+  "version": "0.1.0",
+  "description": "Bringt 'Neue Dokus', Verfügbarkeitsdaten und Vorab-Inhalte zurück auf zdf.de",
+  "permissions": [],
+  "host_permissions": [
+    "https://api.zdf.de/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.zdf.de/dokus*",
+        "https://www.zdf.de/dokumentation*"
+      ],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "48": "icons/icon-48.svg"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "zdf-klassik@cgrebs.dev"
+    }
+  }
+}
