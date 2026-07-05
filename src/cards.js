@@ -5,9 +5,9 @@ function badge(modifier, label) {
   return `<span class="zk-card-badge zk-card-badge--${modifier}">${label}</span>`;
 }
 
-export function createCard(item, nowMs) {
+export function createCard(item, nowMs, { landscape = false } = {}) {
   const card = document.createElement("a");
-  card.className = "zk-card";
+  card.className = landscape ? "zk-card zk-card--landscape" : "zk-card";
   card.href = item.url;
 
   const edMs = item.editorialDate ? new Date(item.editorialDate).getTime() : 0;
@@ -16,7 +16,9 @@ export function createCard(item, nowMs) {
   const duration = formatDuration(item.duration);
   const isNeu = edMs > 0 && !isVorab && (nowMs - edMs) / MS_PER_DAY <= 3;
 
-  const img = item.imagePortrait || item.imageLandscape;
+  const img = landscape
+    ? item.imageLandscape || item.imagePortrait
+    : item.imagePortrait || item.imageLandscape;
 
   let badgeHtml = "";
   if (isVorab) {

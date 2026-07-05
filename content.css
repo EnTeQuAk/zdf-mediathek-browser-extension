@@ -355,3 +355,130 @@
   padding: 1rem 0;
   font-style: italic;
 }
+
+/* Grid layout */
+
+.zk-grid-section {
+  margin-bottom: 2.5rem;
+}
+
+.zk-grid-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.zk-grid-count {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.zk-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 1200px) {
+  .zk-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .zk-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.zk-grid-footer {
+  display: flex;
+  justify-content: center;
+  padding-top: 2rem;
+}
+
+/* Landscape card variant */
+
+.zk-card--landscape {
+  flex: none;
+}
+
+.zk-card--landscape .zk-card-image {
+  aspect-ratio: 16 / 9;
+}
+
+/* Pagination */
+
+.zk-load-more-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.zk-load-more {
+  padding: 0.625rem 2rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fff;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.zk-load-more:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.zk-load-more:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.zk-load-more--loading {
+  position: relative;
+  color: transparent;
+}
+
+.zk-load-more--loading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-top-color: #fa7d19;
+  border-radius: 50%;
+  animation: zk-spin 0.8s linear infinite;
+}
+
+/* Grid skeletons */
+
+.zk-grid-skeleton-card {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.zk-grid-skeleton-image {
+  aspect-ratio: 16 / 9;
+  background: linear-gradient(
+    110deg,
+    rgba(255, 255, 255, 0.04) 30%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 70%
+  );
+  background-size: 200% 100%;
+  animation: zk-shimmer 1.5s ease-in-out infinite;
+  border-radius: 10px;
+}
+
+.zk-grid-skeleton-text {
+  height: 0.75rem;
+  width: 70%;
+  margin-top: 0.5rem;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+}
