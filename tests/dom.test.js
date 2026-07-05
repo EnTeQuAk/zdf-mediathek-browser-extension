@@ -10,49 +10,27 @@ describe("findGridContainer", () => {
     expect(findGridContainer()).toBeNull();
   });
 
-  it("injects after tablist inside a content wrapper", () => {
+  it("injects before first tabpanel (Radix Tabs structure)", () => {
     document.body.innerHTML = `
       <main>
-        <div data-testid="hero">Hero</div>
-        <div class="content">
-          <nav><div role="tablist"><button role="tab">Alle</button></div></nav>
-          <div class="grid">Grid</div>
+        <div>
+          <div data-testid="hero">Hero</div>
+          <div id="tab-navigation">
+            <div>
+              <div role="region"><div role="tablist"><button role="tab">Alle</button></div></div>
+              <div role="tabpanel" class="active-panel">Grid</div>
+              <div role="tabpanel"></div>
+            </div>
+          </div>
         </div>
       </main>
     `;
     const result = findGridContainer();
     expect(result).not.toBeNull();
-    expect(result.before.className).toBe("grid");
+    expect(result.before.className).toBe("active-panel");
   });
 
-  it("injects after tablist when tabs are a direct sibling of grid", () => {
-    document.body.innerHTML = `
-      <main>
-        <div data-testid="hero">Hero</div>
-        <div class="tabs"><div role="tablist"><button role="tab">Alle</button></div></div>
-        <div class="grid">Grid</div>
-      </main>
-    `;
-    const result = findGridContainer();
-    expect(result).not.toBeNull();
-    expect(result.before.className).toBe("grid");
-  });
-
-  it("appends to parent when tablist has no next sibling", () => {
-    document.body.innerHTML = `
-      <main>
-        <div class="content">
-          <div role="tablist"><button role="tab">Alle</button></div>
-          <div class="grid">Grid</div>
-        </div>
-      </main>
-    `;
-    const result = findGridContainer();
-    expect(result).not.toBeNull();
-    expect(result.before.className).toBe("grid");
-  });
-
-  it("falls back to hero strategy when no tablist exists", () => {
+  it("falls back to hero strategy when no tabpanel exists", () => {
     document.body.innerHTML = `
       <main>
         <div data-testid="hero">Hero</div>
@@ -93,7 +71,7 @@ describe("findGridContainer", () => {
     expect(result.parent.className).toBe("single-wrapper");
   });
 
-  it("finds injection point when no hero or tablist exists but main has children", () => {
+  it("finds injection point when no hero or tabpanel exists but main has children", () => {
     document.body.innerHTML = `
       <main>
         <div class="first">First</div>

@@ -1,20 +1,11 @@
 export function findGridContainer() {
-  // Strategy 1: Find the category tab bar and inject right after it.
-  // The tabs filter our sections too, so we should appear below them.
-  // Walk up from the tablist through single-child wrappers until we
-  // reach a parent with multiple children (the content area).
-  const tablist = document.querySelector('[role="tablist"]');
-  if (tablist) {
-    let el = tablist;
-    while (el.parentElement) {
-      if (el.parentElement.tagName === "MAIN" || el.parentElement.children.length > 1) {
-        if (el.nextElementSibling) {
-          return { before: el.nextElementSibling };
-        }
-        return { parent: el.parentElement };
-      }
-      el = el.parentElement;
-    }
+  // Strategy 1: Inject before the first tabpanel, right after the tab bar.
+  // ZDF uses Radix Tabs: region (tab bar) + tabpanels are siblings inside
+  // #tab-navigation. Injecting before the first tabpanel places our
+  // sections below the category filter that controls them.
+  const tabpanel = document.querySelector('[role="tabpanel"]');
+  if (tabpanel) {
+    return { before: tabpanel };
   }
 
   // Strategy 2: Walk up from hero, find the first ancestor with a next sibling.
