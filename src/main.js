@@ -11,14 +11,45 @@ function buildQuery(filter, brand) {
   return [filter, brand].filter(Boolean).join(" ");
 }
 
-async function fetchNeue(token, page, filter, brand, signal) {
+async function fetchNeue(token, page, filter, brand, sortBy, signal) {
   const query = buildQuery(filter, brand);
   return fetchContent(token, {
     query,
     limit: RESULTS_PER_SECTION,
     path: page.apiPath,
+    sortBy,
     signal,
   });
+}
+
+function createSortToggle(onSort) {
+  const toggle = document.createElement("div");
+  toggle.className = "zk-sort-toggle";
+
+  const options = [
+    { label: "Neueste", value: "date" },
+    { label: "Meist gesehen", value: "views" },
+  ];
+
+  for (const opt of options) {
+    const btn = document.createElement("button");
+    btn.className = `zk-sort-btn${opt.value === "date" ? " zk-sort-btn--active" : ""}`;
+    btn.textContent = opt.label;
+    btn.type = "button";
+    btn.dataset.sort = opt.value;
+    toggle.appendChild(btn);
+  }
+
+  toggle.addEventListener("click", (e) => {
+    const btn = e.target.closest(".zk-sort-btn");
+    if (!btn) return;
+    for (const b of toggle.querySelectorAll(".zk-sort-btn")) {
+      b.classList.toggle("zk-sort-btn--active", b === btn);
+    }
+    onSort(btn.dataset.sort);
+  });
+
+  return toggle;
 }
 
 async function fetchSerien(token, page, signal) {
@@ -70,7 +101,7 @@ function renderVorab(section, items) {
   }
 }
 
-async function loadSections(token, page, filter, brand) {
+async function loadSections(token, page, filter, brand, sortBy = "date") {
   if (activeController) {
     activeController.abort();
   }
@@ -90,7 +121,7 @@ async function loadSections(token, page, filter, brand) {
   }
 
   try {
-    const result = await fetchNeue(token, page, filter, brand, signal);
+    const result = await fetchNeue(token, page, filter, brand, sortBy, signal);
     const neueSection = container.querySelector("#zk-neue-dokus");
     const vorabSection = container.querySelector("#zk-vorab");
 
@@ -111,10 +142,54 @@ async function loadSections(token, page, filter, brand) {
     if (vorabSection) setRailContent(vorabSection, "zk-error", "");
   }
 
-  // Serien section loads independently
-  const serienSection = container.querySelector("#zk-serien");
-  if (serienSection) {
-    loadSerien(token, page, serienSection, signal);
+  const lazySections = [
+    { el: container.querySelector("#zk-neu-mediathek"), load: (s) => loadCrossPage(token, s, signal) },
+    { el: container.querySelector("#zk-serien"), load: (s) => loadSerien(token, page, s, signal) },
+  ].filter((s) => s.el);
+
+  if (lazySections.length > 0) {
+    const loaded = new Set();
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        const match = lazySections.find((s) => s.el === entry.target);
+        if (match && !loaded.has(match.el)) {
+          loaded.add(match.el);
+          match.load(match.el);
+          observer.unobserve(match.el);
+        }
+      }
+    }, { rootMargin: "200px" });
+    for (const s of lazySections) {
+      observer.observe(s.el);
+    }
+  }
+}
+
+async function loadCrossPage(token, section, signal) {
+  try {
+    const { apiFetch, parseSearchResults } = await import("./api.js");
+    const params = new URLSearchParams({
+      hasVideo: "true",
+      sortOrder: "desc",
+      sortBy: "date",
+      page: "1",
+      limit: String(RESULTS_PER_SECTION),
+      types: "page-video",
+    });
+    const data = await apiFetch(token, `/search/documents?${params}`, { signal });
+    const items = parseSearchResults(data);
+    const now = new Date().toISOString();
+    const neueItems = items.filter((r) => !r.editorialDate || r.editorialDate <= now);
+    if (neueItems.length === 0) {
+      section.style.display = "none";
+    } else {
+      renderCards(section, neueItems, data.totalResultsCount);
+    }
+  } catch (err) {
+    if (err.name === "AbortError") return;
+    console.error("[ZDF Klassik] Cross-page:", err);
+    section.style.display = "none";
   }
 }
 
@@ -164,24 +239,32 @@ async function init() {
     container.appendChild(createSection(def.id, def.title));
   }
 
-  // Add brand pills to the "neue" section
   let activeBrand = "";
+  let activeSort = "date";
+
+  const reload = () => loadSections(token, page, detectActiveFilter(), activeBrand, activeSort);
+
   const neueSection = container.querySelector("#zk-neue-dokus");
   if (neueSection) {
     const pillBar = createPillBar(page.brands, (brand) => {
       activeBrand = brand;
-      loadSections(token, page, detectActiveFilter(), activeBrand);
+      reload();
     });
     if (pillBar) {
       neueSection.insertBefore(pillBar, neueSection.querySelector(".zk-rail-wrapper"));
     }
+
+    const sortToggle = createSortToggle((sort) => {
+      activeSort = sort;
+      reload();
+    });
+    neueSection.querySelector(".zk-section-header").appendChild(sortToggle);
   }
 
   injectContainer(grid, container);
 
-  const filter = detectActiveFilter();
-  await loadSections(token, page, filter, activeBrand);
-  observeFilterChanges((newFilter) => loadSections(token, page, newFilter, activeBrand));
+  await reload();
+  observeFilterChanges(() => reload());
 }
 
 function tryInit(attempts = 0) {

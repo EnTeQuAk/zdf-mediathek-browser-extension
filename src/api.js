@@ -57,12 +57,12 @@ export async function apiFetch(token, path, { signal } = {}) {
   throw lastError;
 }
 
-export async function fetchContent(token, { query = "", limit = RESULTS_PER_SECTION, path, signal } = {}) {
+export async function fetchContent(token, { query = "", limit = RESULTS_PER_SECTION, path, signal, sortBy = "date" } = {}) {
   const params = new URLSearchParams({
     q: query,
     hasVideo: "true",
     sortOrder: "desc",
-    sortBy: "date",
+    sortBy,
     paths: path,
     page: "1",
     limit: String(limit),

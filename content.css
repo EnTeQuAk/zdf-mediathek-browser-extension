@@ -29,6 +29,36 @@
   font-weight: 400;
 }
 
+.zk-sort-toggle {
+  margin-left: auto;
+  display: flex;
+  gap: 0;
+  border-radius: 0.25rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.zk-sort-btn {
+  padding: 0.2rem 0.5rem;
+  font-size: 0.6875rem;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.zk-sort-btn:hover {
+  color: #fff;
+}
+
+.zk-sort-btn--active {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-weight: 600;
+}
+
 .zk-pills {
   display: flex;
   gap: 0.5rem;

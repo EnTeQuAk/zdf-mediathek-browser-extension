@@ -19,6 +19,7 @@ export const PAGES = [
     sections: [
       { id: "zk-vorab", type: "vorab", title: "Vorab verfügbar" },
       { id: "zk-neue-dokus", type: "neue", title: "Neu: Dokus" },
+      { id: "zk-neu-mediathek", type: "cross-page", title: "Neu in der Mediathek" },
       { id: "zk-serien", type: "serien", title: "Serien & Reihen" },
     ],
   },
@@ -30,6 +31,7 @@ export const PAGES = [
     sections: [
       { id: "zk-vorab", type: "vorab", title: "Vorab verfügbar" },
       { id: "zk-neue-dokus", type: "neue", title: "Neu: Dokus" },
+      { id: "zk-neu-mediathek", type: "cross-page", title: "Neu in der Mediathek" },
       { id: "zk-serien", type: "serien", title: "Serien & Reihen" },
     ],
   },
