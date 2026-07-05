@@ -1,5 +1,5 @@
 import { RESULTS_PER_PAGE, detectCurrentPage } from "./config.js";
-import { extractApiToken, fetchContent } from "./api.js";
+import { extractApiToken, fetchContent, clearCache } from "./api.js";
 import { createSection, renderCards, showSkeletons } from "./sections.js";
 import { createGrid, renderGridCards, showGridSkeletons, setGridMessage, updateGridCount } from "./grid.js";
 import { createPaginationButton, updatePaginationState } from "./pagination.js";
@@ -236,6 +236,7 @@ function observeNavigation() {
     const currentPath = window.location.pathname;
     if (currentPath !== lastPath) {
       lastPath = currentPath;
+      clearCache();
       tryInit(0);
     }
   };

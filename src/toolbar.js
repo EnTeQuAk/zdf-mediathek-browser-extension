@@ -79,6 +79,14 @@ export function createToolbar({ brands = [], onBrandChange, onSortChange, onType
   );
   controls.appendChild(typeControl);
 
+  const filterBtn = document.createElement("button");
+  filterBtn.className = "zk-filter-btn";
+  filterBtn.type = "button";
+  filterBtn.textContent = "Mehr Filter";
+  filterBtn.disabled = true;
+  filterBtn.title = "Bald verfügbar";
+  controls.appendChild(filterBtn);
+
   toolbar.appendChild(controls);
 
   if (brands.length > 0) {

@@ -1,7 +1,9 @@
 import { API_BASE, RESULTS_PER_SECTION } from "./config.js";
+import * as cache from "./cache.js";
 
 const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 500;
+const CACHE_TTL_MS = 60000;
 
 export function extractApiToken() {
   for (const script of document.querySelectorAll("script")) {
@@ -91,11 +93,22 @@ export async function fetchContent(
   if (sortBy) {
     params.set("sortBy", sortBy);
   }
+  const cacheKey = params.toString();
+  const cached = cache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
   const data = await apiFetch(token, `/search/documents?${params}`, { signal });
-  return {
+  const result = {
     total: data.totalResultsCount || 0,
     items: parseSearchResults(data),
   };
+  cache.set(cacheKey, result, CACHE_TTL_MS);
+  return result;
+}
+
+export function clearCache() {
+  cache.clear();
 }
 
 export function parseSearchResults(data) {

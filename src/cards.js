@@ -29,18 +29,33 @@ export function createCard(item, nowMs, { landscape = false } = {}) {
     badgeHtml = badge("neu", "Neu");
   }
 
-  card.innerHTML = `
-    <div class="zk-card-image">
-      ${img ? `<img src="${escapeHtml(img)}" alt="" loading="lazy">` : ""}
-      ${badgeHtml}
-      ${duration ? `<span class="zk-card-duration">${duration}</span>` : ""}
-      <div class="zk-card-gradient"></div>
-      <div class="zk-card-title-overlay">${escapeHtml(item.title)}</div>
-    </div>
-    <div class="zk-card-body">
-      <p class="zk-card-meta">${escapeHtml(item.category)}${item.editorialDate ? ` · ${formatDate(item.editorialDate)}` : ""}</p>
-      ${availability ? `<p class="zk-card-availability${availability.soon ? " zk-card-availability--soon" : ""}">${availability.text}</p>` : ""}
-    </div>
-  `;
+  if (landscape) {
+    card.innerHTML = `
+      <div class="zk-card-image">
+        ${img ? `<img src="${escapeHtml(img)}" alt="" loading="lazy">` : ""}
+        ${badgeHtml}
+        ${duration ? `<span class="zk-card-duration">${duration}</span>` : ""}
+      </div>
+      <div class="zk-card-body">
+        <p class="zk-card-title">${escapeHtml(item.title)}</p>
+        <p class="zk-card-meta">${escapeHtml(item.category)}${item.editorialDate ? ` · ${formatDate(item.editorialDate)}` : ""}</p>
+        ${availability ? `<p class="zk-card-availability${availability.soon ? " zk-card-availability--soon" : ""}">${availability.text}</p>` : ""}
+      </div>
+    `;
+  } else {
+    card.innerHTML = `
+      <div class="zk-card-image">
+        ${img ? `<img src="${escapeHtml(img)}" alt="" loading="lazy">` : ""}
+        ${badgeHtml}
+        ${duration ? `<span class="zk-card-duration">${duration}</span>` : ""}
+        <div class="zk-card-gradient"></div>
+        <div class="zk-card-title-overlay">${escapeHtml(item.title)}</div>
+      </div>
+      <div class="zk-card-body">
+        <p class="zk-card-meta">${escapeHtml(item.category)}${item.editorialDate ? ` · ${formatDate(item.editorialDate)}` : ""}</p>
+        ${availability ? `<p class="zk-card-availability${availability.soon ? " zk-card-availability--soon" : ""}">${availability.text}</p>` : ""}
+      </div>
+    `;
+  }
   return card;
 }
