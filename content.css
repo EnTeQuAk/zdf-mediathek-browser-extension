@@ -33,96 +33,113 @@
   font-weight: 400;
 }
 
-.zk-sort-toggle {
-  margin-left: auto;
-  display: flex;
-  gap: 0;
-  border-radius: 0.25rem;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.zk-sort-btn {
-  padding: 0.25rem 0.625rem;
-  font-size: 0.8125rem;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.5);
-  border: none;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-}
-
-.zk-sort-btn:hover {
-  color: #fff;
-}
-
-.zk-sort-btn--active {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  font-weight: 600;
-}
-
 /* Toolbar */
 
 .zk-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
   margin-bottom: 1.25rem;
+}
+
+.zk-toolbar-filters {
+  display: flex;
+  gap: 0.375rem;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
 .zk-toolbar-controls {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
-  margin-bottom: 0.625rem;
-  flex-wrap: wrap;
+  gap: 1rem;
+  margin-left: auto;
 }
 
-.zk-toolbar-brands {
+/* Sort links: inline text buttons echoing ZDF's tab style */
+
+.zk-sort-links {
   display: flex;
-  gap: 0.375rem;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.125rem;
 }
 
-.zk-segment-control {
+.zk-sort-link {
+  background: none;
+  border: none;
+  border-bottom: 1.5px solid transparent;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  padding: 0.25rem 0.375rem;
+  transition: color 0.15s ease;
+  white-space: nowrap;
+}
+
+.zk-sort-link:hover {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.zk-sort-link--active {
+  color: #fff;
+  font-weight: 600;
+  border-bottom-color: #fa7d19;
+}
+
+.zk-sort-sep {
+  color: rgba(255, 255, 255, 0.15);
+  font-size: 0.6875rem;
+  user-select: none;
+  padding: 0 0.0625rem;
+}
+
+/* Type toggle: compact segment */
+
+.zk-type-toggle {
   display: flex;
-  gap: 0;
   border-radius: 6px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.03);
 }
 
-.zk-segment-btn {
-  padding: 0.375rem 0.875rem;
-  font-size: 0.8125rem;
+.zk-type-btn {
+  padding: 0.3rem 0.625rem;
+  font-size: 0.75rem;
   background: transparent;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.4);
   border: none;
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
 }
 
-.zk-segment-btn:hover {
-  color: rgba(255, 255, 255, 0.85);
-  background: rgba(255, 255, 255, 0.04);
+.zk-type-btn:hover {
+  color: rgba(255, 255, 255, 0.75);
 }
 
-.zk-segment-btn--active {
-  background: rgba(255, 255, 255, 0.12);
+.zk-type-btn--active {
+  background: rgba(255, 255, 255, 0.1);
   color: #fff;
   font-weight: 600;
 }
 
+/* Filter icon button */
+
 .zk-filter-btn {
-  padding: 0.375rem 0.875rem;
-  font-size: 0.8125rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   cursor: not-allowed;
-  white-space: nowrap;
+  padding: 0;
 }
 
 .zk-pills {

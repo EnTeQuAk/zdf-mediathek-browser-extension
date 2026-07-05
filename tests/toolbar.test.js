@@ -6,7 +6,7 @@ describe("createToolbar", () => {
     document.body.innerHTML = "";
   });
 
-  it("creates toolbar with controls and brand bar", () => {
+  it("creates toolbar with filters and controls zones", () => {
     const toolbar = createToolbar({
       brands: ["Terra X", "37 Grad"],
       onBrandChange: () => {},
@@ -15,11 +15,26 @@ describe("createToolbar", () => {
     });
 
     expect(toolbar.className).toBe("zk-toolbar");
+    expect(toolbar.querySelector(".zk-toolbar-filters")).not.toBeNull();
     expect(toolbar.querySelector(".zk-toolbar-controls")).not.toBeNull();
-    expect(toolbar.querySelector(".zk-toolbar-brands")).not.toBeNull();
   });
 
-  it("omits brand bar when no brands provided", () => {
+  it("puts brand pills in the filters zone (left)", () => {
+    const toolbar = createToolbar({
+      brands: ["Terra X"],
+      onBrandChange: () => {},
+      onSortChange: () => {},
+      onTypeChange: () => {},
+    });
+
+    const filters = toolbar.querySelector(".zk-toolbar-filters");
+    const pills = filters.querySelectorAll(".zk-pill");
+    expect(pills.length).toBe(2);
+    expect(pills[0].textContent).toBe("Alle");
+    expect(pills[1].textContent).toBe("Terra X");
+  });
+
+  it("omits filters zone when no brands provided", () => {
     const toolbar = createToolbar({
       brands: [],
       onBrandChange: () => {},
@@ -27,10 +42,10 @@ describe("createToolbar", () => {
       onTypeChange: () => {},
     });
 
-    expect(toolbar.querySelector(".zk-toolbar-brands")).toBeNull();
+    expect(toolbar.querySelector(".zk-toolbar-filters")).toBeNull();
   });
 
-  it("has two segment controls (sort and type)", () => {
+  it("has sort links with Empfohlen active by default", () => {
     const toolbar = createToolbar({
       brands: [],
       onBrandChange: () => {},
@@ -38,11 +53,15 @@ describe("createToolbar", () => {
       onTypeChange: () => {},
     });
 
-    const segments = toolbar.querySelectorAll(".zk-segment-control");
-    expect(segments.length).toBe(2);
+    const links = toolbar.querySelectorAll(".zk-sort-link");
+    expect(links.length).toBe(3);
+    expect(links[0].textContent).toBe("Empfohlen");
+    expect(links[0].classList.contains("zk-sort-link--active")).toBe(true);
+    expect(links[1].textContent).toBe("Neueste");
+    expect(links[2].textContent).toBe("Meist gesehen");
   });
 
-  it("sort control has three options with Empfohlen active by default", () => {
+  it("has type toggle with Videos active by default", () => {
     const toolbar = createToolbar({
       brands: [],
       onBrandChange: () => {},
@@ -50,29 +69,24 @@ describe("createToolbar", () => {
       onTypeChange: () => {},
     });
 
-    const sortControl = toolbar.querySelectorAll(".zk-segment-control")[0];
-    const buttons = sortControl.querySelectorAll(".zk-segment-btn");
-    expect(buttons.length).toBe(3);
-    expect(buttons[0].textContent).toBe("Empfohlen");
-    expect(buttons[0].classList.contains("zk-segment-btn--active")).toBe(true);
-    expect(buttons[1].textContent).toBe("Neueste");
-    expect(buttons[2].textContent).toBe("Meist gesehen");
-  });
-
-  it("type control has two options with Einzelbeiträge active by default", () => {
-    const toolbar = createToolbar({
-      brands: [],
-      onBrandChange: () => {},
-      onSortChange: () => {},
-      onTypeChange: () => {},
-    });
-
-    const typeControl = toolbar.querySelectorAll(".zk-segment-control")[1];
-    const buttons = typeControl.querySelectorAll(".zk-segment-btn");
+    const buttons = toolbar.querySelectorAll(".zk-type-btn");
     expect(buttons.length).toBe(2);
-    expect(buttons[0].textContent).toBe("Einzelbeiträge");
-    expect(buttons[0].classList.contains("zk-segment-btn--active")).toBe(true);
-    expect(buttons[1].textContent).toBe("Serien & Reihen");
+    expect(buttons[0].textContent).toBe("Videos");
+    expect(buttons[0].classList.contains("zk-type-btn--active")).toBe(true);
+    expect(buttons[1].textContent).toBe("Serien");
+  });
+
+  it("has a disabled filter icon button", () => {
+    const toolbar = createToolbar({
+      brands: [],
+      onBrandChange: () => {},
+      onSortChange: () => {},
+      onTypeChange: () => {},
+    });
+
+    const btn = toolbar.querySelector(".zk-filter-btn");
+    expect(btn).not.toBeNull();
+    expect(btn.disabled).toBe(true);
   });
 
   it("calls onSortChange with null for Empfohlen", () => {
@@ -85,9 +99,7 @@ describe("createToolbar", () => {
     });
     document.body.appendChild(toolbar);
 
-    const sortControl = toolbar.querySelectorAll(".zk-segment-control")[0];
-    sortControl.querySelectorAll(".zk-segment-btn")[0].click();
-
+    toolbar.querySelectorAll(".zk-sort-link")[0].click();
     expect(onSortChange).toHaveBeenCalledWith(null);
   });
 
@@ -101,9 +113,7 @@ describe("createToolbar", () => {
     });
     document.body.appendChild(toolbar);
 
-    const sortControl = toolbar.querySelectorAll(".zk-segment-control")[0];
-    sortControl.querySelectorAll(".zk-segment-btn")[1].click();
-
+    toolbar.querySelectorAll(".zk-sort-link")[1].click();
     expect(onSortChange).toHaveBeenCalledWith("date");
   });
 
@@ -117,10 +127,24 @@ describe("createToolbar", () => {
     });
     document.body.appendChild(toolbar);
 
-    const sortControl = toolbar.querySelectorAll(".zk-segment-control")[0];
-    sortControl.querySelectorAll(".zk-segment-btn")[2].click();
-
+    toolbar.querySelectorAll(".zk-sort-link")[2].click();
     expect(onSortChange).toHaveBeenCalledWith("views");
+  });
+
+  it("updates active state on sort link click", () => {
+    const toolbar = createToolbar({
+      brands: [],
+      onBrandChange: () => {},
+      onSortChange: () => {},
+      onTypeChange: () => {},
+    });
+    document.body.appendChild(toolbar);
+
+    const links = toolbar.querySelectorAll(".zk-sort-link");
+    links[1].click();
+
+    expect(links[0].classList.contains("zk-sort-link--active")).toBe(false);
+    expect(links[1].classList.contains("zk-sort-link--active")).toBe(true);
   });
 
   it("calls onTypeChange with correct type value", () => {
@@ -133,9 +157,7 @@ describe("createToolbar", () => {
     });
     document.body.appendChild(toolbar);
 
-    const typeControl = toolbar.querySelectorAll(".zk-segment-control")[1];
-    typeControl.querySelectorAll(".zk-segment-btn")[1].click();
-
+    toolbar.querySelectorAll(".zk-type-btn")[1].click();
     expect(onTypeChange).toHaveBeenCalledWith("page-index");
   });
 
@@ -150,9 +172,7 @@ describe("createToolbar", () => {
     document.body.appendChild(toolbar);
 
     const pills = toolbar.querySelectorAll(".zk-pill");
-    expect(pills.length).toBe(3);
     pills[1].click();
-
     expect(onBrandChange).toHaveBeenCalledWith("Terra X");
   });
 
@@ -169,25 +189,20 @@ describe("createToolbar", () => {
     const pills = toolbar.querySelectorAll(".zk-pill");
     pills[1].click();
     pills[0].click();
-
     expect(onBrandChange).toHaveBeenLastCalledWith("");
   });
 
-  it("updates active state on segment click", () => {
+  it("controls zone is after filters zone in DOM order", () => {
     const toolbar = createToolbar({
-      brands: [],
+      brands: ["Terra X"],
       onBrandChange: () => {},
       onSortChange: () => {},
       onTypeChange: () => {},
     });
-    document.body.appendChild(toolbar);
 
-    const sortControl = toolbar.querySelectorAll(".zk-segment-control")[0];
-    const buttons = sortControl.querySelectorAll(".zk-segment-btn");
-
-    buttons[1].click();
-
-    expect(buttons[0].classList.contains("zk-segment-btn--active")).toBe(false);
-    expect(buttons[1].classList.contains("zk-segment-btn--active")).toBe(true);
+    const children = Array.from(toolbar.children);
+    const filtersIdx = children.findIndex((el) => el.classList.contains("zk-toolbar-filters"));
+    const controlsIdx = children.findIndex((el) => el.classList.contains("zk-toolbar-controls"));
+    expect(filtersIdx).toBeLessThan(controlsIdx);
   });
 });
