@@ -88,30 +88,21 @@ describe("createCard", () => {
 
   describe("badge logic", () => {
     it("shows 'Vorab' badge for future editorial date", () => {
-      const card = createCard(
-        makeItem({ editorialDate: "2026-07-10T10:00:00Z" }),
-        Date.now()
-      );
+      const card = createCard(makeItem({ editorialDate: "2026-07-10T10:00:00Z" }), Date.now());
       const badge = card.querySelector(".zk-card-badge--vorab");
       expect(badge).not.toBeNull();
       expect(badge.textContent).toBe("Vorab");
     });
 
     it("shows 'Neu' badge for content within 3 days", () => {
-      const card = createCard(
-        makeItem({ editorialDate: "2026-07-03T10:00:00Z" }),
-        Date.now()
-      );
+      const card = createCard(makeItem({ editorialDate: "2026-07-03T10:00:00Z" }), Date.now());
       const badge = card.querySelector(".zk-card-badge--neu");
       expect(badge).not.toBeNull();
       expect(badge.textContent).toBe("Neu");
     });
 
     it("shows no 'Neu' badge for content older than 3 days", () => {
-      const card = createCard(
-        makeItem({ editorialDate: "2026-06-20T10:00:00Z" }),
-        Date.now()
-      );
+      const card = createCard(makeItem({ editorialDate: "2026-06-20T10:00:00Z" }), Date.now());
       const badge = card.querySelector(".zk-card-badge--neu");
       expect(badge).toBeNull();
     });
@@ -122,7 +113,7 @@ describe("createCard", () => {
           editorialDate: "2026-06-01T10:00:00Z",
           endDate: "2026-07-07T12:00:00Z",
         }),
-        Date.now()
+        Date.now(),
       );
       const badge = card.querySelector(".zk-card-badge--expiring");
       expect(badge).not.toBeNull();
@@ -135,7 +126,7 @@ describe("createCard", () => {
           editorialDate: "2026-07-10T10:00:00Z",
           endDate: "2026-07-07T12:00:00Z",
         }),
-        Date.now()
+        Date.now(),
       );
       const vorab = card.querySelector(".zk-card-badge--vorab");
       const expiring = card.querySelector(".zk-card-badge--expiring");
@@ -149,7 +140,7 @@ describe("createCard", () => {
           editorialDate: "2026-05-01T10:00:00Z",
           endDate: "2027-01-01T00:00:00Z",
         }),
-        Date.now()
+        Date.now(),
       );
       const badges = card.querySelectorAll(".zk-card-badge");
       expect(badges).toHaveLength(0);

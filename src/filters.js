@@ -1,7 +1,9 @@
 let historyPatched = false;
 
 function patchHistoryApi() {
-  if (historyPatched) return;
+  if (historyPatched) {
+    return;
+  }
   historyPatched = true;
 
   const script = document.createElement("script");
@@ -28,18 +30,17 @@ function patchHistoryApi() {
 export function detectActiveFilter() {
   const url = window.location.href;
   const hashMatch = url.match(/[#?].*filter=([^&]+)/);
-  if (hashMatch) return decodeURIComponent(hashMatch[1]);
+  if (hashMatch) {
+    return decodeURIComponent(hashMatch[1]);
+  }
 
-  const tabs = document.querySelectorAll(
-    'button[role="tab"], [role="tablist"] button'
-  );
+  const tabs = document.querySelectorAll('button[role="tab"], [role="tablist"] button');
   for (const tab of tabs) {
-    if (
-      tab.getAttribute("aria-selected") === "true" ||
-      tab.classList.contains("active")
-    ) {
+    if (tab.getAttribute("aria-selected") === "true" || tab.classList.contains("active")) {
       const text = tab.textContent.trim();
-      if (text && text !== "Alle Inhalte") return text;
+      if (text && text !== "Alle Inhalte") {
+        return text;
+      }
     }
   }
 

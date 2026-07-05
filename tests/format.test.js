@@ -1,10 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { escapeHtml, daysBetween, formatDate, formatAvailability, formatDuration } from "../src/format.js";
+import {
+  escapeHtml,
+  daysBetween,
+  formatDate,
+  formatAvailability,
+  formatDuration,
+} from "../src/format.js";
 
 describe("escapeHtml", () => {
   it("escapes all special HTML characters", () => {
-    expect(escapeHtml('&<>"\''))
-      .toBe("&amp;&lt;&gt;&quot;&#39;");
+    expect(escapeHtml("&<>\"'")).toBe("&amp;&lt;&gt;&quot;&#39;");
   });
 
   it("leaves safe strings unchanged", () => {
@@ -16,8 +21,9 @@ describe("escapeHtml", () => {
   });
 
   it("escapes characters within a sentence", () => {
-    expect(escapeHtml('Tom & Jerry: "Best <Friends>"'))
-      .toBe("Tom &amp; Jerry: &quot;Best &lt;Friends&gt;&quot;");
+    expect(escapeHtml('Tom & Jerry: "Best <Friends>"')).toBe(
+      "Tom &amp; Jerry: &quot;Best &lt;Friends&gt;&quot;",
+    );
   });
 });
 

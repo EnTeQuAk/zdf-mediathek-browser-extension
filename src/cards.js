@@ -19,9 +19,13 @@ export function createCard(item, nowMs) {
   const img = item.imagePortrait || item.imageLandscape;
 
   let badgeHtml = "";
-  if (isVorab) badgeHtml = badge("vorab", "Vorab");
-  else if (availability?.soon) badgeHtml = badge("expiring", "Läuft ab");
-  else if (isNeu) badgeHtml = badge("neu", "Neu");
+  if (isVorab) {
+    badgeHtml = badge("vorab", "Vorab");
+  } else if (availability?.soon) {
+    badgeHtml = badge("expiring", "Läuft ab");
+  } else if (isNeu) {
+    badgeHtml = badge("neu", "Neu");
+  }
 
   card.innerHTML = `
     <div class="zk-card-image">

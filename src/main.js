@@ -42,7 +42,9 @@ function createSortToggle(onSort) {
 
   toggle.addEventListener("click", (e) => {
     const btn = e.target.closest(".zk-sort-btn");
-    if (!btn) return;
+    if (!btn) {
+      return;
+    }
     for (const b of toggle.querySelectorAll(".zk-sort-btn")) {
       b.classList.toggle("zk-sort-btn--active", b === btn);
     }
@@ -68,21 +70,23 @@ async function fetchSerien(token, page, signal) {
 
 function renderNeue(section, page, items, total, filter, brand) {
   const now = new Date().toISOString();
-  const neueItems = items.filter(
-    (r) => !r.editorialDate || r.editorialDate <= now
-  );
+  const neueItems = items.filter((r) => !r.editorialDate || r.editorialDate <= now);
 
   if (neueItems.length === 0) {
     const query = buildQuery(filter, brand);
-    setRailContent(section, "zk-empty",
-      query
-        ? `Keine neuen Inhalte für "${query}" gefunden.`
-        : "Keine neuen Inhalte gefunden."
+    setRailContent(
+      section,
+      "zk-empty",
+      query ? `Keine neuen Inhalte für "${query}" gefunden.` : "Keine neuen Inhalte gefunden.",
     );
   } else {
     const parts = [page.label];
-    if (filter) parts.push(filter);
-    if (brand) parts.push(brand);
+    if (filter) {
+      parts.push(filter);
+    }
+    if (brand) {
+      parts.push(brand);
+    }
     section.querySelector(".zk-section-title").textContent = `Neu: ${parts.join(" · ")}`;
     renderCards(section, neueItems, total);
   }
@@ -90,9 +94,7 @@ function renderNeue(section, page, items, total, filter, brand) {
 
 function renderVorab(section, items) {
   const now = new Date().toISOString();
-  const vorabItems = items.filter(
-    (r) => r.editorialDate && r.editorialDate > now
-  );
+  const vorabItems = items.filter((r) => r.editorialDate && r.editorialDate > now);
   if (vorabItems.length === 0) {
     section.style.display = "none";
   } else {
@@ -109,7 +111,9 @@ async function loadSections(token, page, filter, brand, sortBy = "date") {
   const { signal } = activeController;
 
   const container = document.getElementById("zk-container");
-  if (!container) return;
+  if (!container) {
+    return;
+  }
 
   const sectionDefs = page.sections || [];
   for (const def of sectionDefs) {
@@ -132,34 +136,46 @@ async function loadSections(token, page, filter, brand, sortBy = "date") {
       renderVorab(vorabSection, result.items);
     }
   } catch (err) {
-    if (err.name === "AbortError") return;
+    if (err.name === "AbortError") {
+      return;
+    }
     console.error("[ZDF Klassik]", err);
     const neueSection = container.querySelector("#zk-neue-dokus");
     const vorabSection = container.querySelector("#zk-vorab");
     if (neueSection) {
       setRailContent(neueSection, "zk-error", "Inhalte konnten nicht geladen werden.");
     }
-    if (vorabSection) setRailContent(vorabSection, "zk-error", "");
+    if (vorabSection) {
+      setRailContent(vorabSection, "zk-error", "");
+    }
   }
 
   const lazySections = [
-    { el: container.querySelector("#zk-neu-mediathek"), load: (s) => loadCrossPage(token, s, signal) },
+    {
+      el: container.querySelector("#zk-neu-mediathek"),
+      load: (s) => loadCrossPage(token, s, signal),
+    },
     { el: container.querySelector("#zk-serien"), load: (s) => loadSerien(token, page, s, signal) },
   ].filter((s) => s.el);
 
   if (lazySections.length > 0) {
     const loaded = new Set();
-    const observer = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
-        const match = lazySections.find((s) => s.el === entry.target);
-        if (match && !loaded.has(match.el)) {
-          loaded.add(match.el);
-          match.load(match.el);
-          observer.unobserve(match.el);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) {
+            continue;
+          }
+          const match = lazySections.find((s) => s.el === entry.target);
+          if (match && !loaded.has(match.el)) {
+            loaded.add(match.el);
+            match.load(match.el);
+            observer.unobserve(match.el);
+          }
         }
-      }
-    }, { rootMargin: "200px" });
+      },
+      { rootMargin: "200px" },
+    );
     for (const s of lazySections) {
       observer.observe(s.el);
     }
@@ -187,7 +203,9 @@ async function loadCrossPage(token, section, signal) {
       renderCards(section, neueItems, data.totalResultsCount);
     }
   } catch (err) {
-    if (err.name === "AbortError") return;
+    if (err.name === "AbortError") {
+      return;
+    }
     console.error("[ZDF Klassik] Cross-page:", err);
     section.style.display = "none";
   }
@@ -204,7 +222,9 @@ async function loadSerien(token, page, section, signal) {
       renderCards(section, items, data.totalResultsCount);
     }
   } catch (err) {
-    if (err.name === "AbortError") return;
+    if (err.name === "AbortError") {
+      return;
+    }
     console.error("[ZDF Klassik] Serien:", err);
     section.style.display = "none";
   }
@@ -217,7 +237,9 @@ async function init() {
   }
 
   const page = detectCurrentPage();
-  if (!page) return;
+  if (!page) {
+    return;
+  }
 
   const token = extractApiToken();
   if (!token) {
@@ -268,7 +290,9 @@ async function init() {
 }
 
 function tryInit(attempts = 0) {
-  if (document.getElementById("zk-container")) return;
+  if (document.getElementById("zk-container")) {
+    return;
+  }
   if (findGridContainer()) {
     init();
     return;

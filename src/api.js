@@ -7,9 +7,13 @@ export function extractApiToken() {
   for (const script of document.querySelectorAll("script")) {
     const text = script.textContent;
     const escaped = text.match(/apiToken\\":\\"([^\\]+)\\"/);
-    if (escaped) return escaped[1];
+    if (escaped) {
+      return escaped[1];
+    }
     const plain = text.match(/"apiToken":"([^"]+)"/);
-    if (plain) return plain[1];
+    if (plain) {
+      return plain[1];
+    }
   }
   return null;
 }
@@ -23,7 +27,9 @@ function delay(ms) {
 }
 
 export async function apiFetch(token, path, { signal } = {}) {
-  if (!token) return null;
+  if (!token) {
+    return null;
+  }
   const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
 
   let lastError;
@@ -49,15 +55,22 @@ export async function apiFetch(token, path, { signal } = {}) {
       }
       return res.json();
     } catch (err) {
-      if (err.name === "AbortError") throw err;
+      if (err.name === "AbortError") {
+        throw err;
+      }
       lastError = err;
-      if (attempt === MAX_RETRIES) break;
+      if (attempt === MAX_RETRIES) {
+        break;
+      }
     }
   }
   throw lastError;
 }
 
-export async function fetchContent(token, { query = "", limit = RESULTS_PER_SECTION, path, signal, sortBy = "date" } = {}) {
+export async function fetchContent(
+  token,
+  { query = "", limit = RESULTS_PER_SECTION, path, signal, sortBy = "date" } = {},
+) {
   const params = new URLSearchParams({
     q: query,
     hasVideo: "true",
@@ -97,7 +110,9 @@ export function parseSearchResults(data) {
 }
 
 export function pickImage(layouts, mode) {
-  if (!layouts) return "";
+  if (!layouts) {
+    return "";
+  }
   if (mode === "portrait") {
     return (
       layouts["276x311"] ||
@@ -108,10 +123,5 @@ export function pickImage(layouts, mode) {
       ""
     );
   }
-  return (
-    layouts["384x216"] ||
-    layouts["768x432"] ||
-    layouts["276x155"] ||
-    ""
-  );
+  return layouts["384x216"] || layouts["768x432"] || layouts["276x155"] || "";
 }

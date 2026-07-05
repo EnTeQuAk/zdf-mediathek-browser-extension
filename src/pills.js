@@ -1,5 +1,7 @@
 export function createPillBar(brands, onSelect) {
-  if (!brands || brands.length === 0) return null;
+  if (!brands || brands.length === 0) {
+    return null;
+  }
 
   const bar = document.createElement("div");
   bar.className = "zk-pills";
@@ -13,7 +15,9 @@ export function createPillBar(brands, onSelect) {
 
   bar.addEventListener("click", (e) => {
     const pill = e.target.closest(".zk-pill");
-    if (!pill) return;
+    if (!pill) {
+      return;
+    }
 
     for (const p of bar.querySelectorAll(".zk-pill")) {
       p.classList.toggle("zk-pill--active", p === pill);

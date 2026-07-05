@@ -11,15 +11,25 @@ export function daysBetween(a, b) {
 }
 
 export function formatDate(isoStr) {
-  if (!isoStr) return "";
+  if (!isoStr) {
+    return "";
+  }
   const d = new Date(isoStr);
   const now = new Date();
   const diff = daysBetween(d, now);
 
-  if (diff === 0) return "Heute";
-  if (diff === 1) return "Morgen";
-  if (diff === -1) return "Gestern";
-  if (diff > 1 && diff <= 7) return `In ${diff} Tagen`;
+  if (diff === 0) {
+    return "Heute";
+  }
+  if (diff === 1) {
+    return "Morgen";
+  }
+  if (diff === -1) {
+    return "Gestern";
+  }
+  if (diff > 1 && diff <= 7) {
+    return `In ${diff} Tagen`;
+  }
 
   return d.toLocaleDateString("de-DE", {
     day: "numeric",
@@ -29,16 +39,21 @@ export function formatDate(isoStr) {
 }
 
 export function formatAvailability(endDate) {
-  if (!endDate) return null;
+  if (!endDate) {
+    return null;
+  }
   const end = new Date(endDate);
   const daysLeft = daysBetween(end, new Date());
 
-  if (daysLeft < 0) return null;
-  if (daysLeft <= 3)
+  if (daysLeft < 0) {
+    return null;
+  }
+  if (daysLeft <= 3) {
     return {
       text: `Noch ${daysLeft} Tag${daysLeft !== 1 ? "e" : ""}`,
       soon: true,
     };
+  }
 
   const includeYear = daysLeft > 30;
   return {
@@ -52,9 +67,13 @@ export function formatAvailability(endDate) {
 }
 
 export function formatDuration(seconds) {
-  if (!seconds) return null;
+  if (!seconds) {
+    return null;
+  }
   const min = Math.round(seconds / 60);
-  if (min < 60) return `${min} min`;
+  if (min < 60) {
+    return `${min} min`;
+  }
   const h = Math.floor(min / 60);
   const m = min % 60;
   return m > 0 ? `${h}:${String(m).padStart(2, "0")} Std` : `${h} Std`;

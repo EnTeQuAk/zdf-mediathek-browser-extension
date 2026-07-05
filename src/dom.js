@@ -9,7 +9,9 @@ export function findGridContainer() {
       if (el.nextElementSibling) {
         return { before: el.nextElementSibling };
       }
-      if (el.parentElement.tagName === "MAIN") break;
+      if (el.parentElement.tagName === "MAIN") {
+        break;
+      }
       el = el.parentElement;
     }
   }
