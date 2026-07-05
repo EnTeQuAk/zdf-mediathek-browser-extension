@@ -3,12 +3,76 @@ import { extractApiToken, fetchContent } from "./api.js";
 import { createSection, setRailContent, renderCards } from "./sections.js";
 import { findGridContainer, injectContainer } from "./dom.js";
 import { detectActiveFilter, observeFilterChanges } from "./filters.js";
+import { createPillBar } from "./pills.js";
 
 const LOADING_HTML = '<div class="zk-loading-spinner"></div><span>Lade Inhalte…</span>';
 
 let activeController = null;
 
-async function loadSections(token, page, expectedFilter) {
+function buildQuery(filter, brand) {
+  return [filter, brand].filter(Boolean).join(" ");
+}
+
+async function fetchNeue(token, page, filter, brand, signal) {
+  const query = buildQuery(filter, brand);
+  return fetchContent(token, {
+    query,
+    limit: RESULTS_PER_SECTION,
+    path: page.apiPath,
+    signal,
+  });
+}
+
+async function fetchSerien(token, page, signal) {
+  const params = new URLSearchParams({
+    hasVideo: "true",
+    sortOrder: "desc",
+    sortBy: "date",
+    paths: page.apiPath,
+    page: "1",
+    limit: String(RESULTS_PER_SECTION),
+    types: "page-index",
+  });
+  const { apiFetch } = await import("./api.js");
+  return apiFetch(token, `/search/documents?${params}`, { signal });
+}
+
+function renderNeue(section, page, items, total, filter, brand) {
+  const now = new Date().toISOString();
+  const neueItems = items.filter(
+    (r) => !r.editorialDate || r.editorialDate <= now
+  );
+
+  if (neueItems.length === 0) {
+    const query = buildQuery(filter, brand);
+    setRailContent(section, "zk-empty",
+      query
+        ? `Keine neuen Inhalte für "${query}" gefunden.`
+        : "Keine neuen Inhalte gefunden."
+    );
+  } else {
+    const parts = [page.label];
+    if (filter) parts.push(filter);
+    if (brand) parts.push(brand);
+    section.querySelector(".zk-section-title").textContent = `Neu: ${parts.join(" · ")}`;
+    renderCards(section, neueItems, total);
+  }
+}
+
+function renderVorab(section, items) {
+  const now = new Date().toISOString();
+  const vorabItems = items.filter(
+    (r) => r.editorialDate && r.editorialDate > now
+  );
+  if (vorabItems.length === 0) {
+    section.style.display = "none";
+  } else {
+    section.style.display = "";
+    renderCards(section, vorabItems);
+  }
+}
+
+async function loadSections(token, page, filter, brand) {
   if (activeController) {
     activeController.abort();
   }
@@ -18,59 +82,58 @@ async function loadSections(token, page, expectedFilter) {
   const container = document.getElementById("zk-container");
   if (!container) return;
 
-  const neueDokus = container.querySelector("#zk-neue-dokus");
-  const vorab = container.querySelector("#zk-vorab");
-
-  setRailContent(neueDokus, "zk-loading", LOADING_HTML);
-  if (vorab) {
-    setRailContent(vorab, "zk-loading", LOADING_HTML);
+  const sectionDefs = page.sections || [];
+  for (const def of sectionDefs) {
+    const el = container.querySelector(`#${def.id}`);
+    if (el) {
+      setRailContent(el, "zk-loading", LOADING_HTML);
+      el.style.display = "";
+    }
   }
 
-  const now = new Date().toISOString();
-
   try {
-    const result = await fetchContent(token, {
-      query: expectedFilter,
-      limit: RESULTS_PER_SECTION,
-      path: page.apiPath,
-      signal,
-    });
-    if (detectActiveFilter() !== expectedFilter) return;
+    const result = await fetchNeue(token, page, filter, brand, signal);
+    const neueSection = container.querySelector("#zk-neue-dokus");
+    const vorabSection = container.querySelector("#zk-vorab");
 
-    const vorabItems = result.items.filter(
-      (r) => r.editorialDate && r.editorialDate > now
-    );
-    const neueItems = result.items.filter(
-      (r) => !r.editorialDate || r.editorialDate <= now
-    );
-
-    if (vorab) {
-      if (vorabItems.length === 0) {
-        vorab.style.display = "none";
-      } else {
-        vorab.style.display = "";
-        renderCards(vorab, vorabItems);
-      }
+    if (neueSection) {
+      renderNeue(neueSection, page, result.items, result.total, filter, brand);
     }
-
-    if (neueItems.length === 0) {
-      setRailContent(neueDokus, "zk-empty",
-        expectedFilter
-          ? `Keine neuen Inhalte in "${expectedFilter}" gefunden.`
-          : `Keine neuen Inhalte gefunden.`
-      );
-    } else {
-      const title = expectedFilter
-        ? `Neu: ${page.label} · ${expectedFilter}`
-        : `Neu: ${page.label}`;
-      neueDokus.querySelector(".zk-section-title").textContent = title;
-      renderCards(neueDokus, neueItems, result.total);
+    if (vorabSection) {
+      renderVorab(vorabSection, result.items);
     }
   } catch (err) {
     if (err.name === "AbortError") return;
     console.error("[ZDF Klassik]", err);
-    setRailContent(neueDokus, "zk-error", "Inhalte konnten nicht geladen werden.");
-    if (vorab) setRailContent(vorab, "zk-error", "");
+    const neueSection = container.querySelector("#zk-neue-dokus");
+    const vorabSection = container.querySelector("#zk-vorab");
+    if (neueSection) {
+      setRailContent(neueSection, "zk-error", "Inhalte konnten nicht geladen werden.");
+    }
+    if (vorabSection) setRailContent(vorabSection, "zk-error", "");
+  }
+
+  // Serien section loads independently
+  const serienSection = container.querySelector("#zk-serien");
+  if (serienSection) {
+    loadSerien(token, page, serienSection, signal);
+  }
+}
+
+async function loadSerien(token, page, section, signal) {
+  try {
+    const data = await fetchSerien(token, page, signal);
+    const { parseSearchResults } = await import("./api.js");
+    const items = parseSearchResults(data);
+    if (items.length === 0) {
+      section.style.display = "none";
+    } else {
+      renderCards(section, items, data.totalResultsCount);
+    }
+  } catch (err) {
+    if (err.name === "AbortError") return;
+    console.error("[ZDF Klassik] Serien:", err);
+    section.style.display = "none";
   }
 }
 
@@ -98,17 +161,29 @@ async function init() {
   const container = document.createElement("div");
   container.id = "zk-container";
 
-  const vorabSection = createSection("zk-vorab", "Vorab verfügbar");
-  const neueDokusSection = createSection("zk-neue-dokus", `Neu: ${page.label}`);
+  const sectionDefs = page.sections || [];
+  for (const def of sectionDefs) {
+    container.appendChild(createSection(def.id, def.title));
+  }
 
-  container.appendChild(vorabSection);
-  container.appendChild(neueDokusSection);
+  // Add brand pills to the "neue" section
+  let activeBrand = "";
+  const neueSection = container.querySelector("#zk-neue-dokus");
+  if (neueSection) {
+    const pillBar = createPillBar(page.brands, (brand) => {
+      activeBrand = brand;
+      loadSections(token, page, detectActiveFilter(), activeBrand);
+    });
+    if (pillBar) {
+      neueSection.insertBefore(pillBar, neueSection.querySelector(".zk-rail"));
+    }
+  }
 
   injectContainer(grid, container);
 
   const filter = detectActiveFilter();
-  await loadSections(token, page, filter);
-  observeFilterChanges((newFilter) => loadSections(token, page, newFilter));
+  await loadSections(token, page, filter, activeBrand);
+  observeFilterChanges((newFilter) => loadSections(token, page, newFilter, activeBrand));
 }
 
 function tryInit(attempts = 0) {

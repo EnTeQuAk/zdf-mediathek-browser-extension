@@ -29,6 +29,50 @@
   font-weight: 400;
 }
 
+.zk-pills {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.zk-pills::-webkit-scrollbar {
+  display: none;
+}
+
+.zk-pill {
+  flex-shrink: 0;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.zk-pill:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+}
+
+.zk-pill--active {
+  background: #fa7d19;
+  border-color: #fa7d19;
+  color: #000;
+  font-weight: 600;
+}
+
+.zk-pill--active:hover {
+  background: #fb8c33;
+  border-color: #fb8c33;
+  color: #000;
+}
+
 .zk-rail {
   display: flex;
   gap: 0.75rem;
