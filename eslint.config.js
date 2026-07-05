@@ -18,6 +18,7 @@ export default [
         URL: "readonly",
         AbortController: "readonly",
         IntersectionObserver: "readonly",
+        requestAnimationFrame: "readonly",
       },
     },
   },

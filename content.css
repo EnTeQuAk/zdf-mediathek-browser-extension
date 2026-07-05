@@ -73,6 +73,41 @@
   color: #000;
 }
 
+.zk-rail-wrapper {
+  position: relative;
+}
+
+.zk-rail-wrapper::before,
+.zk-rail-wrapper::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 4px;
+  width: 3rem;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.zk-rail-wrapper::before {
+  left: 0;
+  background: linear-gradient(to right, #1c1e22, transparent);
+}
+
+.zk-rail-wrapper::after {
+  right: 0;
+  background: linear-gradient(to left, #1c1e22, transparent);
+}
+
+.zk-rail-wrapper--fade-left::before {
+  opacity: 1;
+}
+
+.zk-rail-wrapper--fade-right::after {
+  opacity: 1;
+}
+
 .zk-rail {
   display: flex;
   gap: 0.75rem;
@@ -213,6 +248,43 @@
 
 .zk-card-availability--soon {
   color: #e74c3c;
+}
+
+.zk-skeleton-rail {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.zk-skeleton-card {
+  flex: 0 0 200px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.zk-skeleton-image {
+  aspect-ratio: 8 / 9;
+  background: linear-gradient(
+    110deg,
+    rgba(255, 255, 255, 0.04) 30%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 70%
+  );
+  background-size: 200% 100%;
+  animation: zk-shimmer 1.5s ease-in-out infinite;
+  border-radius: 12px;
+}
+
+.zk-skeleton-text {
+  height: 0.75rem;
+  width: 70%;
+  margin-top: 0.5rem;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+}
+
+@keyframes zk-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 .zk-loading {

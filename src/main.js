@@ -1,11 +1,9 @@
 import { RESULTS_PER_SECTION, detectCurrentPage } from "./config.js";
 import { extractApiToken, fetchContent } from "./api.js";
-import { createSection, setRailContent, renderCards } from "./sections.js";
+import { createSection, setRailContent, renderCards, showSkeletons } from "./sections.js";
 import { findGridContainer, injectContainer } from "./dom.js";
 import { detectActiveFilter, observeFilterChanges } from "./filters.js";
 import { createPillBar } from "./pills.js";
-
-const LOADING_HTML = '<div class="zk-loading-spinner"></div><span>Lade Inhalte…</span>';
 
 let activeController = null;
 
@@ -86,7 +84,7 @@ async function loadSections(token, page, filter, brand) {
   for (const def of sectionDefs) {
     const el = container.querySelector(`#${def.id}`);
     if (el) {
-      setRailContent(el, "zk-loading", LOADING_HTML);
+      showSkeletons(el);
       el.style.display = "";
     }
   }
@@ -175,7 +173,7 @@ async function init() {
       loadSections(token, page, detectActiveFilter(), activeBrand);
     });
     if (pillBar) {
-      neueSection.insertBefore(pillBar, neueSection.querySelector(".zk-rail"));
+      neueSection.insertBefore(pillBar, neueSection.querySelector(".zk-rail-wrapper"));
     }
   }
 
