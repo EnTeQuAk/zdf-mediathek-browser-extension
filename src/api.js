@@ -1,4 +1,4 @@
-import { API_BASE, DOKU_PATH, RESULTS_PER_SECTION } from "./config.js";
+import { API_BASE, RESULTS_PER_SECTION } from "./config.js";
 
 export function extractApiToken() {
   for (const script of document.querySelectorAll("script")) {
@@ -21,7 +21,7 @@ export async function apiFetch(token, path) {
   return res.json();
 }
 
-export async function fetchContent(token, { query = "", limit = RESULTS_PER_SECTION, path = DOKU_PATH } = {}) {
+export async function fetchContent(token, { query = "", limit = RESULTS_PER_SECTION, path } = {}) {
   const params = new URLSearchParams({
     q: query,
     hasVideo: "true",

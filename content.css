@@ -1,4 +1,6 @@
 #zk-container {
+  position: relative;
+  z-index: 1;
   padding: 0 3rem 1.5rem;
 }
 

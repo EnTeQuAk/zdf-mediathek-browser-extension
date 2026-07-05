@@ -11,7 +11,11 @@
     {
       "matches": [
         "https://www.zdf.de/dokus*",
-        "https://www.zdf.de/dokumentation*"
+        "https://www.zdf.de/dokumentation*",
+        "https://www.zdf.de/wissen*",
+        "https://www.zdf.de/gesellschaft*",
+        "https://www.zdf.de/kultur*",
+        "https://www.zdf.de/geschichte*"
       ],
       "js": ["content.js"],
       "css": ["content.css"],
