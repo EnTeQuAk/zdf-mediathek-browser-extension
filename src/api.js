@@ -69,18 +69,28 @@ export async function apiFetch(token, path, { signal } = {}) {
 
 export async function fetchContent(
   token,
-  { query = "", limit = RESULTS_PER_SECTION, path, signal, sortBy = "date" } = {},
+  {
+    query = "",
+    limit = RESULTS_PER_SECTION,
+    path,
+    signal,
+    sortBy = "date",
+    types = "page-video",
+    page = 1,
+  } = {},
 ) {
   const params = new URLSearchParams({
     q: query,
     hasVideo: "true",
     sortOrder: "desc",
-    sortBy,
     paths: path,
-    page: "1",
+    page: String(page),
     limit: String(limit),
-    types: "page-video",
+    types,
   });
+  if (sortBy) {
+    params.set("sortBy", sortBy);
+  }
   const data = await apiFetch(token, `/search/documents?${params}`, { signal });
   return {
     total: data.totalResultsCount || 0,

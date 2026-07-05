@@ -30,7 +30,7 @@ export function createPillBar(brands, onSelect) {
   return bar;
 }
 
-function createPill(label, active) {
+export function createPill(label, active) {
   const btn = document.createElement("button");
   btn.className = `zk-pill${active ? " zk-pill--active" : ""}`;
   btn.textContent = label;

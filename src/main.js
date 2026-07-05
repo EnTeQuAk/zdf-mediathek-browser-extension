@@ -3,7 +3,7 @@ import { extractApiToken, fetchContent } from "./api.js";
 import { createSection, setRailContent, renderCards, showSkeletons } from "./sections.js";
 import { findGridContainer, injectContainer } from "./dom.js";
 import { detectActiveFilter, observeFilterChanges } from "./filters.js";
-import { createPillBar } from "./pills.js";
+import { createToolbar } from "./toolbar.js";
 
 let activeController = null;
 
@@ -11,47 +11,16 @@ function buildQuery(filter, brand) {
   return [filter, brand].filter(Boolean).join(" ");
 }
 
-async function fetchNeue(token, page, filter, brand, sortBy, signal) {
+async function fetchNeue(token, page, filter, brand, sortBy, types, signal) {
   const query = buildQuery(filter, brand);
   return fetchContent(token, {
     query,
     limit: RESULTS_PER_SECTION,
     path: page.apiPath,
     sortBy,
+    types,
     signal,
   });
-}
-
-function createSortToggle(onSort) {
-  const toggle = document.createElement("div");
-  toggle.className = "zk-sort-toggle";
-
-  const options = [
-    { label: "Neueste", value: "date" },
-    { label: "Meist gesehen", value: "views" },
-  ];
-
-  for (const opt of options) {
-    const btn = document.createElement("button");
-    btn.className = `zk-sort-btn${opt.value === "date" ? " zk-sort-btn--active" : ""}`;
-    btn.textContent = opt.label;
-    btn.type = "button";
-    btn.dataset.sort = opt.value;
-    toggle.appendChild(btn);
-  }
-
-  toggle.addEventListener("click", (e) => {
-    const btn = e.target.closest(".zk-sort-btn");
-    if (!btn) {
-      return;
-    }
-    for (const b of toggle.querySelectorAll(".zk-sort-btn")) {
-      b.classList.toggle("zk-sort-btn--active", b === btn);
-    }
-    onSort(btn.dataset.sort);
-  });
-
-  return toggle;
 }
 
 async function fetchSerien(token, page, signal) {
@@ -103,7 +72,7 @@ function renderVorab(section, items) {
   }
 }
 
-async function loadSections(token, page, filter, brand, sortBy = "date") {
+async function loadSections(token, page, filter, brand, sortBy = null, types = "page-video") {
   if (activeController) {
     activeController.abort();
   }
@@ -125,7 +94,7 @@ async function loadSections(token, page, filter, brand, sortBy = "date") {
   }
 
   try {
-    const result = await fetchNeue(token, page, filter, brand, sortBy, signal);
+    const result = await fetchNeue(token, page, filter, brand, sortBy, types, signal);
     const neueSection = container.querySelector("#zk-neue-dokus");
     const vorabSection = container.querySelector("#zk-vorab");
 
@@ -262,26 +231,32 @@ async function init() {
   }
 
   let activeBrand = "";
-  let activeSort = "date";
+  let activeSort = null;
+  let activeType = "page-video";
 
-  const reload = () => loadSections(token, page, detectActiveFilter(), activeBrand, activeSort);
+  const reload = () =>
+    loadSections(token, page, detectActiveFilter(), activeBrand, activeSort, activeType);
 
-  const neueSection = container.querySelector("#zk-neue-dokus");
-  if (neueSection) {
-    const pillBar = createPillBar(page.brands, (brand) => {
+  const toolbar = createToolbar({
+    brands: page.brands,
+    onBrandChange: (brand) => {
       activeBrand = brand;
       reload();
-    });
-    if (pillBar) {
-      neueSection.insertBefore(pillBar, neueSection.querySelector(".zk-rail-wrapper"));
-    }
-
-    const sortToggle = createSortToggle((sort) => {
+    },
+    onSortChange: (sort) => {
       activeSort = sort;
       reload();
-    });
-    neueSection.querySelector(".zk-section-header").appendChild(sortToggle);
-  }
+    },
+    onTypeChange: (type) => {
+      activeType = type;
+      const serienSection = container.querySelector("#zk-serien");
+      if (serienSection) {
+        serienSection.style.display = type === "page-index" ? "none" : "";
+      }
+      reload();
+    },
+  });
+  container.insertBefore(toolbar, container.firstChild);
 
   injectContainer(grid, container);
 

@@ -63,6 +63,55 @@
   font-weight: 600;
 }
 
+/* Toolbar */
+
+.zk-toolbar {
+  margin-bottom: 1.5rem;
+}
+
+.zk-toolbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.zk-toolbar-brands {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.zk-segment-control {
+  display: flex;
+  gap: 0;
+  border-radius: 0.25rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.zk-segment-btn {
+  padding: 0.3rem 0.75rem;
+  font-size: 0.8125rem;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.zk-segment-btn:hover {
+  color: #fff;
+}
+
+.zk-segment-btn--active {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-weight: 600;
+}
+
 .zk-pills {
   display: flex;
   gap: 0.5rem;
