@@ -44,7 +44,7 @@ export function createSection(id, title) {
   rail.setAttribute("role", "list");
   rail.addEventListener("scroll", () => updateScrollAffordance(wrapper, rail));
   rail.addEventListener("keydown", (e) => {
-    const scrollAmount = 220;
+    const scrollAmount = 276;
     if (e.key === "ArrowRight") {
       rail.scrollBy({ left: scrollAmount });
       e.preventDefault();

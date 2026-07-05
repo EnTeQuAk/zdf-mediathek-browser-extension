@@ -1,11 +1,15 @@
 #zk-container {
   position: relative;
   z-index: 1;
-  padding: 0 3rem 1.5rem;
+  padding: 0 0 1.5rem;
 }
 
 .zk-section {
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
+}
+
+.zk-section:last-child {
+  margin-bottom: 1rem;
 }
 
 .zk-section-header {
@@ -16,7 +20,7 @@
 }
 
 .zk-section-title {
-  font-size: 1.25rem;
+  font-size: 1.375rem;
   font-weight: 700;
   color: #fff;
   margin: 0;
@@ -39,8 +43,8 @@
 }
 
 .zk-sort-btn {
-  padding: 0.2rem 0.5rem;
-  font-size: 0.6875rem;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
   background: transparent;
   color: rgba(255, 255, 255, 0.5);
   border: none;
@@ -74,7 +78,7 @@
 
 .zk-pill {
   flex-shrink: 0;
-  padding: 0.25rem 0.75rem;
+  padding: 0.3rem 0.875rem;
   border-radius: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: transparent;
@@ -122,12 +126,12 @@
 
 .zk-rail-wrapper::before {
   left: 0;
-  background: linear-gradient(to right, #1c1e22, transparent);
+  background: linear-gradient(to right, #131b22, transparent);
 }
 
 .zk-rail-wrapper::after {
   right: 0;
-  background: linear-gradient(to left, #1c1e22, transparent);
+  background: linear-gradient(to left, #131b22, transparent);
 }
 
 .zk-rail-wrapper--fade-left::before {
@@ -140,7 +144,7 @@
 
 .zk-rail {
   display: flex;
-  gap: 0.75rem;
+  gap: 1rem;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
@@ -153,18 +157,18 @@
 }
 
 .zk-card {
-  flex: 0 0 200px;
+  flex: 0 0 260px;
   scroll-snap-align: start;
   text-decoration: none;
   color: inherit;
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
   transition: transform 0.2s ease;
   position: relative;
 }
 
 .zk-card:hover {
-  transform: scale(1.04);
+  transform: scale(1.05);
 }
 
 .zk-card:focus-visible {
@@ -174,10 +178,10 @@
 
 .zk-card-image {
   position: relative;
-  aspect-ratio: 8 / 9;
-  background: #1c1e22;
+  aspect-ratio: 3 / 4;
+  background: #131b22;
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
 .zk-card-image img {
@@ -248,7 +252,7 @@
   left: 10px;
   right: 10px;
   z-index: 2;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 700;
   color: #fff;
   line-height: 1.25;
@@ -282,17 +286,17 @@
 
 .zk-skeleton-rail {
   display: flex;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .zk-skeleton-card {
-  flex: 0 0 200px;
-  border-radius: 12px;
+  flex: 0 0 260px;
+  border-radius: 10px;
   overflow: hidden;
 }
 
 .zk-skeleton-image {
-  aspect-ratio: 8 / 9;
+  aspect-ratio: 3 / 4;
   background: linear-gradient(
     110deg,
     rgba(255, 255, 255, 0.04) 30%,
@@ -301,7 +305,7 @@
   );
   background-size: 200% 100%;
   animation: zk-shimmer 1.5s ease-in-out infinite;
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
 .zk-skeleton-text {
