@@ -1,0 +1,24 @@
+{
+  "name": "zdf-klassik",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Firefox extension that restores content discovery features on ZDF Mediathek",
+  "scripts": {
+    "build": "node build.js",
+    "watch": "node build.js --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src/ tests/ --no-error-on-unmatched-pattern",
+    "dev": "npm run watch & web-ext run --source-dir dist/ --firefox-profile zdf-klassik-dev --keep-profile-changes",
+    "package": "npm run build && web-ext build --source-dir dist/"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "esbuild": "^0.28.1",
+    "eslint": "^10.6.0",
+    "happy-dom": "^20.10.6",
+    "vitest": "^4.1.9",
+    "web-ext": "^10.4.0"
+  }
+}
