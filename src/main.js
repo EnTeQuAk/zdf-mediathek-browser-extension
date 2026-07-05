@@ -3,7 +3,7 @@ import { extractApiToken, fetchContent } from "./api.js";
 import { createSection, renderCards, showSkeletons } from "./sections.js";
 import { createGrid, renderGridCards, showGridSkeletons, setGridMessage, updateGridCount } from "./grid.js";
 import { createPaginationButton, updatePaginationState } from "./pagination.js";
-import { findGridContainer, injectContainer } from "./dom.js";
+import { findGridContainer, injectContainer, hideNativeContent, observeTabpanelMutations } from "./dom.js";
 import { detectActiveFilter, observeFilterChanges } from "./filters.js";
 import { createToolbar } from "./toolbar.js";
 
@@ -205,6 +205,8 @@ async function init() {
   container.appendChild(gridSection);
 
   injectContainer(grid, container);
+  hideNativeContent();
+  observeTabpanelMutations();
 
   await loadFirstPage();
   observeFilterChanges(() => loadFirstPage());

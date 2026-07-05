@@ -1,5 +1,11 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { findGridContainer, injectContainer } from "../src/dom.js";
+import {
+  findGridContainer,
+  injectContainer,
+  hideNativeContent,
+  restoreNativeContent,
+  observeTabpanelMutations,
+} from "../src/dom.js";
 
 describe("findGridContainer", () => {
   beforeEach(() => {
@@ -111,5 +117,69 @@ describe("injectContainer", () => {
     injectContainer({ parent: wrapper }, container);
 
     expect(wrapper.lastElementChild.id).toBe("zk-container");
+  });
+});
+
+describe("hideNativeContent", () => {
+  beforeEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("hides all tabpanel elements", () => {
+    document.body.innerHTML = `
+      <div role="tabpanel" class="p1">Content 1</div>
+      <div role="tabpanel" class="p2">Content 2</div>
+    `;
+    hideNativeContent();
+
+    const panels = document.querySelectorAll('[role="tabpanel"]');
+    expect(panels[0].style.display).toBe("none");
+    expect(panels[1].style.display).toBe("none");
+  });
+
+  it("does nothing when no tabpanels exist", () => {
+    document.body.innerHTML = "<div>No panels</div>";
+    hideNativeContent();
+    expect(document.querySelector("div").style.display).toBe("");
+  });
+});
+
+describe("restoreNativeContent", () => {
+  it("restores display on all tabpanel elements", () => {
+    document.body.innerHTML = `
+      <div role="tabpanel" style="display: none">Content</div>
+    `;
+    restoreNativeContent();
+
+    const panel = document.querySelector('[role="tabpanel"]');
+    expect(panel.style.display).toBe("");
+  });
+});
+
+describe("observeTabpanelMutations", () => {
+  beforeEach(() => {
+    document.body.innerHTML = "";
+    restoreNativeContent();
+  });
+
+  it("does not throw when tab-navigation element is missing", () => {
+    expect(() => observeTabpanelMutations()).not.toThrow();
+  });
+
+  it("re-hides tabpanels when new ones are added", async () => {
+    document.body.innerHTML = '<div id="tab-navigation"></div>';
+    observeTabpanelMutations();
+
+    const tabNav = document.getElementById("tab-navigation");
+    const panel = document.createElement("div");
+    panel.setAttribute("role", "tabpanel");
+    tabNav.appendChild(panel);
+
+    // MutationObserver is async, wait a tick
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(panel.style.display).toBe("none");
+
+    restoreNativeContent();
   });
 });

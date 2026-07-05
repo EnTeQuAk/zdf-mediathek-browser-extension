@@ -1,8 +1,8 @@
+let tabpanelObserver = null;
+
 export function findGridContainer() {
-  // Strategy 1: Inject before the first tabpanel, right after the tab bar.
-  // ZDF uses Radix Tabs: region (tab bar) + tabpanels are siblings inside
-  // #tab-navigation. Injecting before the first tabpanel places our
-  // sections below the category filter that controls them.
+  // Strategy 1: Inject before the first tabpanel (replaces it visually).
+  // ZDF uses Radix Tabs: region (tab bar) + tabpanels are siblings.
   const tabpanel = document.querySelector('[role="tabpanel"]');
   if (tabpanel) {
     return { before: tabpanel };
@@ -41,5 +41,41 @@ export function injectContainer(grid, container) {
     grid.before.parentNode.insertBefore(container, grid.before);
   } else {
     grid.parent.appendChild(container);
+  }
+}
+
+export function hideNativeContent() {
+  const tabpanels = document.querySelectorAll('[role="tabpanel"]');
+  for (const panel of tabpanels) {
+    panel.style.display = "none";
+  }
+}
+
+export function restoreNativeContent() {
+  const tabpanels = document.querySelectorAll('[role="tabpanel"]');
+  for (const panel of tabpanels) {
+    panel.style.display = "";
+  }
+  stopTabpanelObserver();
+}
+
+export function observeTabpanelMutations() {
+  stopTabpanelObserver();
+
+  const tabNav = document.getElementById("tab-navigation");
+  if (!tabNav) {
+    return;
+  }
+
+  tabpanelObserver = new MutationObserver(() => {
+    hideNativeContent();
+  });
+  tabpanelObserver.observe(tabNav, { childList: true, subtree: true });
+}
+
+function stopTabpanelObserver() {
+  if (tabpanelObserver) {
+    tabpanelObserver.disconnect();
+    tabpanelObserver = null;
   }
 }
