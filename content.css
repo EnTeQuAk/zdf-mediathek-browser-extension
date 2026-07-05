@@ -1,7 +1,7 @@
 #zk-container {
   position: relative;
   z-index: 1;
-  padding: 0 0 1.5rem;
+  padding: 1.5rem 0;
 }
 
 .zk-section {
