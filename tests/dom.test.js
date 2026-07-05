@@ -23,6 +23,31 @@ describe("findGridContainer", () => {
     expect(result.before.className).toBe("grid");
   });
 
+  it("skips past sibling containing category tablist", () => {
+    document.body.innerHTML = `
+      <main>
+        <div data-testid="hero">Hero</div>
+        <div class="tabs"><div role="tablist"><button role="tab">Alle</button></div></div>
+        <div class="grid">Grid</div>
+      </main>
+    `;
+    const result = findGridContainer();
+    expect(result).not.toBeNull();
+    expect(result.before.className).toBe("grid");
+  });
+
+  it("does not skip tablist sibling when there is nothing after it", () => {
+    document.body.innerHTML = `
+      <main>
+        <div data-testid="hero">Hero</div>
+        <div class="tabs"><div role="tablist"><button role="tab">Alle</button></div></div>
+      </main>
+    `;
+    const result = findGridContainer();
+    expect(result).not.toBeNull();
+    expect(result.before.className).toBe("tabs");
+  });
+
   it("walks up from hero to find sibling (hydrated structure)", () => {
     document.body.innerHTML = `
       <main>

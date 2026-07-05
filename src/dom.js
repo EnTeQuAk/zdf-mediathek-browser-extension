@@ -7,7 +7,13 @@ export function findGridContainer() {
     let el = hero;
     while (el && el.parentElement) {
       if (el.nextElementSibling) {
-        return { before: el.nextElementSibling };
+        let target = el.nextElementSibling;
+        // If the next sibling contains the category tab bar, inject
+        // after it so our sections sit below the filter they respond to.
+        if (target.querySelector('[role="tablist"]') && target.nextElementSibling) {
+          target = target.nextElementSibling;
+        }
+        return { before: target };
       }
       if (el.parentElement.tagName === "MAIN") {
         break;
