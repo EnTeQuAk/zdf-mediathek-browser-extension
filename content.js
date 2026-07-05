@@ -4,16 +4,23 @@
   const API_BASE = "https://api.zdf.de";
   const DOKU_PATH = "/zdf/dokumentation";
   const RESULTS_PER_SECTION = 30;
+  const MS_PER_DAY = 1000 * 60 * 60 * 24;
+  const CATEGORIES = [
+    "Geschichte", "Gesellschaft", "Kultur", "Politik", "Sport",
+    "Reise", "Natur", "True Crime", "Wirtschaft", "Stars",
+    "Wissen", "Musik", "Gesundheit",
+  ];
 
-  let currentFilter = "";
   let apiToken = null;
 
   function extractApiToken() {
-    const html = document.documentElement.innerHTML;
-    const escaped = html.match(/apiToken\\":\\"([^\\]+)\\"/);
-    if (escaped) return escaped[1];
-    const plain = html.match(/"apiToken":"([^"]+)"/);
-    if (plain) return plain[1];
+    for (const script of document.querySelectorAll("script")) {
+      const text = script.textContent;
+      const escaped = text.match(/apiToken\\":\\"([^\\]+)\\"/);
+      if (escaped) return escaped[1];
+      const plain = text.match(/"apiToken":"([^"]+)"/);
+      if (plain) return plain[1];
+    }
     return null;
   }
 
@@ -86,17 +93,20 @@
     );
   }
 
+  function daysBetween(a, b) {
+    return Math.round((a - b) / MS_PER_DAY);
+  }
+
   function formatDate(isoStr) {
     if (!isoStr) return "";
     const d = new Date(isoStr);
     const now = new Date();
-    const diffMs = d - now;
-    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+    const diff = daysBetween(d, now);
 
-    if (diffDays === 0) return "Heute";
-    if (diffDays === 1) return "Morgen";
-    if (diffDays === -1) return "Gestern";
-    if (diffDays > 1 && diffDays <= 7) return `In ${diffDays} Tagen`;
+    if (diff === 0) return "Heute";
+    if (diff === 1) return "Morgen";
+    if (diff === -1) return "Gestern";
+    if (diff > 1 && diff <= 7) return `In ${diff} Tagen`;
 
     return d.toLocaleDateString("de-DE", {
       day: "numeric",
@@ -108,8 +118,7 @@
   function formatAvailability(endDate) {
     if (!endDate) return null;
     const end = new Date(endDate);
-    const now = new Date();
-    const daysLeft = Math.round((end - now) / (1000 * 60 * 60 * 24));
+    const daysLeft = daysBetween(end, new Date());
 
     if (daysLeft < 0) return null;
     if (daysLeft <= 3)
@@ -117,13 +126,14 @@
         text: `Noch ${daysLeft} Tag${daysLeft !== 1 ? "e" : ""}`,
         soon: true,
       };
-    if (daysLeft <= 30)
-      return {
-        text: `Bis ${end.toLocaleDateString("de-DE", { day: "numeric", month: "short" })}`,
-        soon: false,
-      };
+
+    const includeYear = daysLeft > 30;
     return {
-      text: `Bis ${end.toLocaleDateString("de-DE", { day: "numeric", month: "short", year: "numeric" })}`,
+      text: `Bis ${end.toLocaleDateString("de-DE", {
+        day: "numeric",
+        month: "short",
+        year: includeYear ? "numeric" : undefined,
+      })}`,
       soon: false,
     };
   }
@@ -137,42 +147,38 @@
     return m > 0 ? `${h}:${String(m).padStart(2, "0")} Std` : `${h} Std`;
   }
 
-  function isNew(editorialDate) {
-    if (!editorialDate) return false;
-    const d = new Date(editorialDate);
-    const now = new Date();
-    const diffDays = (now - d) / (1000 * 60 * 60 * 24);
-    return diffDays >= 0 && diffDays <= 3;
-  }
+  const HTML_ESCAPE = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
 
   function escapeHtml(str) {
-    const el = document.createElement("span");
-    el.textContent = str;
-    return el.innerHTML;
+    return str.replace(/[&<>"']/g, (c) => HTML_ESCAPE[c]);
   }
 
-  function createCard(item) {
+  function badge(modifier, label) {
+    return `<span class="zk-card-badge zk-card-badge--${modifier}">${label}</span>`;
+  }
+
+  function createCard(item, nowMs) {
     const card = document.createElement("a");
     card.className = "zk-card";
     card.href = item.url;
 
-    const isVorab =
-      item.editorialDate && new Date(item.editorialDate) > new Date();
+    const edMs = item.editorialDate ? new Date(item.editorialDate).getTime() : 0;
+    const isVorab = edMs > nowMs;
     const availability = formatAvailability(item.endDate);
     const duration = formatDuration(item.duration);
-    const neu = isNew(item.editorialDate);
+    const isNeu = edMs > 0 && !isVorab && (nowMs - edMs) / MS_PER_DAY <= 3;
 
     const img = item.imagePortrait || item.imageLandscape;
 
-    let badge = "";
-    if (isVorab) badge = '<span class="zk-card-badge zk-card-badge--vorab">Vorab</span>';
-    else if (availability?.soon) badge = '<span class="zk-card-badge zk-card-badge--expiring">Läuft ab</span>';
-    else if (neu) badge = '<span class="zk-card-badge zk-card-badge--neu">Neu</span>';
+    let badgeHtml = "";
+    if (isVorab) badgeHtml = badge("vorab", "Vorab");
+    else if (availability?.soon) badgeHtml = badge("expiring", "Läuft ab");
+    else if (isNeu) badgeHtml = badge("neu", "Neu");
 
     card.innerHTML = `
       <div class="zk-card-image">
         ${img ? `<img src="${escapeHtml(img)}" alt="" loading="lazy">` : ""}
-        ${badge}
+        ${badgeHtml}
         ${duration ? `<span class="zk-card-duration">${duration}</span>` : ""}
         <div class="zk-card-gradient"></div>
         <div class="zk-card-title-overlay">${escapeHtml(item.title)}</div>
@@ -211,31 +217,16 @@
     return section;
   }
 
-  function setLoading(section) {
+  function setRailContent(section, className, html) {
     const rail = section.querySelector(".zk-rail");
     rail.innerHTML = "";
     const el = document.createElement("div");
-    el.className = "zk-loading";
-    el.innerHTML =
-      '<div class="zk-loading-spinner"></div><span>Lade Inhalte…</span>';
-    rail.appendChild(el);
-  }
-
-  function setError(section, msg) {
-    const rail = section.querySelector(".zk-rail");
-    rail.innerHTML = "";
-    const el = document.createElement("div");
-    el.className = "zk-error";
-    el.textContent = msg;
-    rail.appendChild(el);
-  }
-
-  function setEmpty(section, msg) {
-    const rail = section.querySelector(".zk-rail");
-    rail.innerHTML = "";
-    const el = document.createElement("div");
-    el.className = "zk-empty";
-    el.textContent = msg;
+    el.className = className;
+    if (html.startsWith("<")) {
+      el.innerHTML = html;
+    } else {
+      el.textContent = html;
+    }
     rail.appendChild(el);
   }
 
@@ -243,7 +234,10 @@
     const rail = section.querySelector(".zk-rail");
     const countEl = section.querySelector(".zk-section-count");
     rail.innerHTML = "";
-    items.forEach((item) => rail.appendChild(createCard(item)));
+    const fragment = document.createDocumentFragment();
+    const nowMs = Date.now();
+    items.forEach((item) => fragment.appendChild(createCard(item, nowMs)));
+    rail.appendChild(fragment);
     if (countEl && total) {
       countEl.textContent = `${total} verfügbar`;
     }
@@ -265,7 +259,6 @@
       el = el.parentElement;
     }
 
-    // Fallback: append to the end of main's first child
     const main = document.querySelector("main");
     if (main && main.firstElementChild) {
       return { parent: main.firstElementChild };
@@ -275,15 +268,10 @@
   }
 
   function detectActiveFilter() {
-    // The ZDF filter tabs are buttons/links inside the page.
-    // When a category is active, it typically has a different visual state.
-    // We observe the URL or the active tab text.
     const url = window.location.href;
     const hashMatch = url.match(/[#?].*filter=([^&]+)/);
     if (hashMatch) return decodeURIComponent(hashMatch[1]);
 
-    // Try to read the active tab from the DOM
-    // The filter tabs typically have an aria-selected or similar attribute
     const tabs = document.querySelectorAll(
       'button[role="tab"], [role="tablist"] button'
     );
@@ -297,50 +285,43 @@
       }
     }
 
-    // Fallback: look for an underlined or differently styled tab
-    // ZDF uses a bottom border on the active filter
     const allButtons = document.querySelectorAll("button");
     for (const btn of allButtons) {
       const text = btn.textContent.trim();
+      if (!CATEGORIES.includes(text)) continue;
       const style = window.getComputedStyle(btn);
       const borderBottom = style.borderBottomColor;
-      // Active tabs have a white or orange bottom border
       if (
         borderBottom &&
         borderBottom !== "rgba(0, 0, 0, 0)" &&
         borderBottom !== "transparent"
       ) {
-        const CATEGORIES = [
-          "Geschichte", "Gesellschaft", "Kultur", "Politik", "Sport",
-          "Reise", "Natur", "True Crime", "Wirtschaft", "Stars",
-          "Wissen", "Musik", "Gesundheit",
-        ];
-        if (CATEGORIES.includes(text)) return text;
+        return text;
       }
     }
 
     return "";
   }
 
-  async function loadSections() {
+  async function loadSections(expectedFilter) {
     const container = document.getElementById("zk-container");
     if (!container) return;
 
     const neueDokus = container.querySelector("#zk-neue-dokus");
     const vorab = container.querySelector("#zk-vorab");
 
-    const filter = detectActiveFilter();
-    currentFilter = filter;
-
-    setLoading(neueDokus);
-    if (vorab) setLoading(vorab);
+    setRailContent(neueDokus, "zk-loading",
+      '<div class="zk-loading-spinner"></div><span>Lade Inhalte…</span>');
+    if (vorab) {
+      setRailContent(vorab, "zk-loading",
+        '<div class="zk-loading-spinner"></div><span>Lade Inhalte…</span>');
+    }
 
     const now = new Date().toISOString();
 
     try {
-      const result = await fetchDokus({ query: filter, limit: RESULTS_PER_SECTION });
-      // If the filter changed while we were loading, discard
-      if (detectActiveFilter() !== currentFilter) return;
+      const result = await fetchDokus({ query: expectedFilter, limit: RESULTS_PER_SECTION });
+      if (detectActiveFilter() !== expectedFilter) return;
 
       const vorabItems = result.items.filter(
         (r) => r.editorialDate && r.editorialDate > now
@@ -359,51 +340,47 @@
       }
 
       if (neueItems.length === 0) {
-        setEmpty(
-          neueDokus,
-          filter
-            ? `Keine neuen Dokus in "${filter}" gefunden.`
+        setRailContent(neueDokus, "zk-empty",
+          expectedFilter
+            ? `Keine neuen Dokus in "${expectedFilter}" gefunden.`
             : "Keine neuen Dokus gefunden."
         );
       } else {
-        const title = filter ? `Neue Dokus: ${filter}` : "Neue Dokus";
+        const title = expectedFilter ? `Neue Dokus: ${expectedFilter}` : "Neue Dokus";
         neueDokus.querySelector(".zk-section-title").textContent = title;
         renderCards(neueDokus, neueItems, result.total);
       }
     } catch (err) {
       console.error("[ZDF Klassik]", err);
-      setError(neueDokus, "Inhalte konnten nicht geladen werden.");
-      if (vorab) setError(vorab, "");
+      setRailContent(neueDokus, "zk-error", "Inhalte konnten nicht geladen werden.");
+      if (vorab) setRailContent(vorab, "zk-error", "");
     }
   }
 
   function observeFilterChanges() {
-    // Watch for clicks on filter tabs and URL changes
     let lastFilter = "";
+    let debounceTimer = null;
 
     const check = () => {
+      debounceTimer = null;
       const filter = detectActiveFilter();
       if (filter !== lastFilter) {
         lastFilter = filter;
-        loadSections();
+        loadSections(filter);
       }
     };
 
-    // Click listener on the body (delegated)
-    document.body.addEventListener("click", () => {
-      // Delay to let React update the DOM/URL
-      setTimeout(check, 300);
-    });
+    const scheduleCheck = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(check, 300);
+    };
 
-    // Also watch for popstate (browser navigation)
-    window.addEventListener("popstate", () => setTimeout(check, 300));
+    document.body.addEventListener("click", scheduleCheck);
+    window.addEventListener("popstate", scheduleCheck);
 
-    // MutationObserver on the main content area for React re-renders
     const main = document.querySelector("main");
     if (main) {
-      const observer = new MutationObserver(() => {
-        setTimeout(check, 200);
-      });
+      const observer = new MutationObserver(scheduleCheck);
       observer.observe(main, { childList: true, subtree: false });
     }
   }
@@ -437,7 +414,9 @@
     } else {
       grid.parent.appendChild(container);
     }
-    await loadSections();
+
+    const filter = detectActiveFilter();
+    await loadSections(filter);
     observeFilterChanges();
   }
 
@@ -454,10 +433,7 @@
     setTimeout(() => tryInit(attempts + 1), 300);
   }
 
-  if (
-    document.readyState === "complete" ||
-    document.readyState === "interactive"
-  ) {
+  if (document.readyState !== "loading") {
     setTimeout(tryInit, 300);
   } else {
     document.addEventListener("DOMContentLoaded", () =>

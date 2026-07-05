@@ -76,10 +76,6 @@
   transition: opacity 0.3s ease;
 }
 
-.zk-card-image img[src=""] {
-  opacity: 0;
-}
-
 .zk-card-badge {
   position: absolute;
   top: 10px;
@@ -99,6 +95,8 @@
 .zk-card-badge--vorab {
   background: #fa7d19;
   color: #000;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .zk-card-badge--expiring {
@@ -107,8 +105,6 @@
 
 .zk-card-badge--neu {
   background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
 }
 
 .zk-card-duration {
