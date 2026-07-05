@@ -1,4 +1,29 @@
-import { CATEGORIES } from "./config.js";
+let historyPatched = false;
+
+function patchHistoryApi() {
+  if (historyPatched) return;
+  historyPatched = true;
+
+  const script = document.createElement("script");
+  script.textContent = `
+    (function() {
+      var orig = {
+        pushState: history.pushState.bind(history),
+        replaceState: history.replaceState.bind(history)
+      };
+      history.pushState = function() {
+        orig.pushState.apply(null, arguments);
+        window.dispatchEvent(new Event("zk:navigation"));
+      };
+      history.replaceState = function() {
+        orig.replaceState.apply(null, arguments);
+        window.dispatchEvent(new Event("zk:navigation"));
+      };
+    })();
+  `;
+  document.documentElement.appendChild(script);
+  script.remove();
+}
 
 export function detectActiveFilter() {
   const url = window.location.href;
@@ -18,25 +43,12 @@ export function detectActiveFilter() {
     }
   }
 
-  const allButtons = document.querySelectorAll("button");
-  for (const btn of allButtons) {
-    const text = btn.textContent.trim();
-    if (!CATEGORIES.includes(text)) continue;
-    const style = window.getComputedStyle(btn);
-    const borderBottom = style.borderBottomColor;
-    if (
-      borderBottom &&
-      borderBottom !== "rgba(0, 0, 0, 0)" &&
-      borderBottom !== "transparent"
-    ) {
-      return text;
-    }
-  }
-
   return "";
 }
 
 export function observeFilterChanges(onFilterChange) {
+  patchHistoryApi();
+
   let lastFilter = "";
   let debounceTimer = null;
 
@@ -56,6 +68,7 @@ export function observeFilterChanges(onFilterChange) {
 
   document.body.addEventListener("click", scheduleCheck);
   window.addEventListener("popstate", scheduleCheck);
+  window.addEventListener("zk:navigation", scheduleCheck);
 
   const main = document.querySelector("main");
   if (main) {

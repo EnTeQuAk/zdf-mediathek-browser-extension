@@ -1,5 +1,8 @@
 import { API_BASE, RESULTS_PER_SECTION } from "./config.js";
 
+const MAX_RETRIES = 3;
+const BASE_DELAY_MS = 500;
+
 export function extractApiToken() {
   for (const script of document.querySelectorAll("script")) {
     const text = script.textContent;
@@ -11,17 +14,50 @@ export function extractApiToken() {
   return null;
 }
 
-export async function apiFetch(token, path) {
-  if (!token) return null;
-  const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
-  const res = await fetch(url, {
-    headers: { "Api-Auth": `Bearer ${token}` },
-  });
-  if (!res.ok) throw new Error(`API ${res.status}: ${url}`);
-  return res.json();
+function isAuthError(status) {
+  return status === 401 || status === 403;
 }
 
-export async function fetchContent(token, { query = "", limit = RESULTS_PER_SECTION, path } = {}) {
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function apiFetch(token, path, { signal } = {}) {
+  if (!token) return null;
+  const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
+
+  let lastError;
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    if (attempt > 0) {
+      await delay(BASE_DELAY_MS * Math.pow(2, attempt - 1));
+    }
+    try {
+      const res = await fetch(url, {
+        headers: { "Api-Auth": `Bearer ${token}` },
+        signal,
+      });
+      if (isAuthError(res.status)) {
+        const newToken = extractApiToken();
+        if (newToken && newToken !== token) {
+          token = newToken;
+          continue;
+        }
+        throw new Error(`API ${res.status}: ${url}`);
+      }
+      if (!res.ok) {
+        throw new Error(`API ${res.status}: ${url}`);
+      }
+      return res.json();
+    } catch (err) {
+      if (err.name === "AbortError") throw err;
+      lastError = err;
+      if (attempt === MAX_RETRIES) break;
+    }
+  }
+  throw lastError;
+}
+
+export async function fetchContent(token, { query = "", limit = RESULTS_PER_SECTION, path, signal } = {}) {
   const params = new URLSearchParams({
     q: query,
     hasVideo: "true",
@@ -32,7 +68,7 @@ export async function fetchContent(token, { query = "", limit = RESULTS_PER_SECT
     limit: String(limit),
     types: "page-video",
   });
-  const data = await apiFetch(token, `/search/documents?${params}`);
+  const data = await apiFetch(token, `/search/documents?${params}`, { signal });
   return {
     total: data.totalResultsCount || 0,
     items: parseSearchResults(data),

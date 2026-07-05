@@ -6,7 +6,15 @@ import { detectActiveFilter, observeFilterChanges } from "./filters.js";
 
 const LOADING_HTML = '<div class="zk-loading-spinner"></div><span>Lade Inhalte…</span>';
 
+let activeController = null;
+
 async function loadSections(token, page, expectedFilter) {
+  if (activeController) {
+    activeController.abort();
+  }
+  activeController = new AbortController();
+  const { signal } = activeController;
+
   const container = document.getElementById("zk-container");
   if (!container) return;
 
@@ -25,6 +33,7 @@ async function loadSections(token, page, expectedFilter) {
       query: expectedFilter,
       limit: RESULTS_PER_SECTION,
       path: page.apiPath,
+      signal,
     });
     if (detectActiveFilter() !== expectedFilter) return;
 
@@ -58,6 +67,7 @@ async function loadSections(token, page, expectedFilter) {
       renderCards(neueDokus, neueItems, result.total);
     }
   } catch (err) {
+    if (err.name === "AbortError") return;
     console.error("[ZDF Klassik]", err);
     setRailContent(neueDokus, "zk-error", "Inhalte konnten nicht geladen werden.");
     if (vorab) setRailContent(vorab, "zk-error", "");
