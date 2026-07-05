@@ -10,20 +10,22 @@ describe("findGridContainer", () => {
     expect(findGridContainer()).toBeNull();
   });
 
-  it("finds grid as hero's next sibling (SSR structure)", () => {
+  it("injects after tablist inside a content wrapper", () => {
     document.body.innerHTML = `
       <main>
         <div data-testid="hero">Hero</div>
-        <div class="grid">Grid</div>
+        <div class="content">
+          <nav><div role="tablist"><button role="tab">Alle</button></div></nav>
+          <div class="grid">Grid</div>
+        </div>
       </main>
     `;
     const result = findGridContainer();
     expect(result).not.toBeNull();
-    expect(result.before).toBeTruthy();
     expect(result.before.className).toBe("grid");
   });
 
-  it("skips past sibling containing category tablist", () => {
+  it("injects after tablist when tabs are a direct sibling of grid", () => {
     document.body.innerHTML = `
       <main>
         <div data-testid="hero">Hero</div>
@@ -36,16 +38,30 @@ describe("findGridContainer", () => {
     expect(result.before.className).toBe("grid");
   });
 
-  it("does not skip tablist sibling when there is nothing after it", () => {
+  it("appends to parent when tablist has no next sibling", () => {
     document.body.innerHTML = `
       <main>
-        <div data-testid="hero">Hero</div>
-        <div class="tabs"><div role="tablist"><button role="tab">Alle</button></div></div>
+        <div class="content">
+          <div role="tablist"><button role="tab">Alle</button></div>
+          <div class="grid">Grid</div>
+        </div>
       </main>
     `;
     const result = findGridContainer();
     expect(result).not.toBeNull();
-    expect(result.before.className).toBe("tabs");
+    expect(result.before.className).toBe("grid");
+  });
+
+  it("falls back to hero strategy when no tablist exists", () => {
+    document.body.innerHTML = `
+      <main>
+        <div data-testid="hero">Hero</div>
+        <div class="grid">Grid</div>
+      </main>
+    `;
+    const result = findGridContainer();
+    expect(result).not.toBeNull();
+    expect(result.before.className).toBe("grid");
   });
 
   it("walks up from hero to find sibling (hydrated structure)", () => {
@@ -77,7 +93,7 @@ describe("findGridContainer", () => {
     expect(result.parent.className).toBe("single-wrapper");
   });
 
-  it("finds injection point when no hero exists but main has children", () => {
+  it("finds injection point when no hero or tablist exists but main has children", () => {
     document.body.innerHTML = `
       <main>
         <div class="first">First</div>
