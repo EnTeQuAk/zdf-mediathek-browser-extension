@@ -20,16 +20,16 @@
 }
 
 .zk-section-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #fff;
+  font-size: var(--font-size-8, 1.5rem);
+  font-weight: var(--font-weight-emphasized, 500);
+  color: var(--color-text-primary, #fbfafa);
   margin: 0;
   letter-spacing: -0.01em;
 }
 
 .zk-section-count {
-  font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.4);
+  font-size: var(--font-size-3, 0.875rem);
+  color: var(--color-text-tertiary, #82919c);
   font-weight: 400;
 }
 
@@ -58,7 +58,7 @@
   margin-left: auto;
 }
 
-/* Sort links: inline text buttons echoing ZDF's tab style */
+/* Sort links */
 
 .zk-sort-links {
   display: flex;
@@ -70,8 +70,10 @@
   background: none;
   border: none;
   border-bottom: 1.5px solid transparent;
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 0.8125rem;
+  color: var(--color-text-secondary, #aeb6bc);
+  font-size: var(--font-size-3, 0.875rem);
+  font-weight: var(--font-weight-emphasized, 500);
+  line-height: var(--line-height-3, 1.125rem);
   cursor: pointer;
   padding: 0.25rem 0.375rem;
   transition: color 0.15s ease;
@@ -79,27 +81,26 @@
 }
 
 .zk-sort-link:hover {
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--color-text-primary, #fbfafa);
 }
 
 .zk-sort-link--active {
-  color: #fff;
-  font-weight: 600;
+  color: var(--color-text-primary, #fbfafa);
   border-bottom-color: #fa7d19;
 }
 
 .zk-sort-sep {
-  color: rgba(255, 255, 255, 0.15);
-  font-size: 0.6875rem;
+  color: var(--color-text-tertiary, #82919c);
+  font-size: var(--font-size-1, 0.625rem);
   user-select: none;
   padding: 0 0.0625rem;
 }
 
-/* Type toggle: compact segment */
+/* Type toggle */
 
 .zk-type-toggle {
   display: flex;
-  border-radius: 6px;
+  border-radius: var(--radius-sm, 0.5rem);
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: rgba(255, 255, 255, 0.03);
@@ -107,9 +108,11 @@
 
 .zk-type-btn {
   padding: 0.3rem 0.625rem;
-  font-size: 0.75rem;
+  font-size: var(--font-size-3, 0.875rem);
+  font-weight: var(--font-weight-emphasized, 500);
+  line-height: var(--line-height-3, 1.125rem);
   background: transparent;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--color-text-secondary, #aeb6bc);
   border: none;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -117,13 +120,12 @@
 }
 
 .zk-type-btn:hover {
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--color-text-primary, #fbfafa);
 }
 
 .zk-type-btn--active {
   background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  font-weight: 600;
+  color: var(--color-text-primary, #fbfafa);
 }
 
 /* Filter icon button */
@@ -135,9 +137,9 @@
   width: 32px;
   height: 28px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.2);
+  color: var(--color-text-disabled, #82919c);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
+  border-radius: var(--radius-sm, 0.5rem);
   cursor: not-allowed;
   padding: 0;
 }
@@ -158,11 +160,13 @@
 .zk-pill {
   flex-shrink: 0;
   padding: 0.3rem 0.75rem;
-  border-radius: 1rem;
+  border-radius: var(--radius-md, 1rem);
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 0.8125rem;
+  color: var(--color-text-secondary, #aeb6bc);
+  font-size: var(--font-size-3, 0.875rem);
+  font-weight: var(--font-weight-emphasized, 500);
+  line-height: var(--line-height-3, 1.125rem);
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
@@ -170,14 +174,13 @@
 
 .zk-pill:hover {
   border-color: rgba(255, 255, 255, 0.4);
-  color: #fff;
+  color: var(--color-text-primary, #fbfafa);
 }
 
 .zk-pill--active {
   background: #fa7d19;
   border-color: #fa7d19;
   color: #000;
-  font-weight: 600;
 }
 
 .zk-pill--active:hover {
@@ -240,7 +243,7 @@
   scroll-snap-align: start;
   text-decoration: none;
   color: inherit;
-  border-radius: 10px;
+  border-radius: var(--radius-sm, 0.5rem);
   overflow: hidden;
   transition: transform 0.2s ease;
   position: relative;
@@ -260,7 +263,7 @@
   aspect-ratio: 3 / 4;
   background: #131b22;
   overflow: hidden;
-  border-radius: 10px;
+  border-radius: var(--radius-sm, 0.5rem);
 }
 
 .zk-card-image img {
@@ -277,11 +280,11 @@
   background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  color: #fff;
-  font-size: 0.75rem;
-  font-weight: 600;
+  color: var(--color-text-primary, #fbfafa);
+  font-size: var(--font-size-2, 0.75rem);
+  font-weight: var(--font-weight-emphasized, 500);
   padding: 3px 10px;
-  border-radius: 4px;
+  border-radius: var(--radius-xs, 0.25rem);
   letter-spacing: 0.02em;
   z-index: 2;
 }
@@ -306,11 +309,11 @@
   bottom: 8px;
   right: 8px;
   background: rgba(0, 0, 0, 0.75);
-  color: #fff;
-  font-size: 0.75rem;
-  font-weight: 500;
+  color: var(--color-text-primary, #fbfafa);
+  font-size: var(--font-size-2, 0.75rem);
+  font-weight: var(--font-weight-emphasized, 500);
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: var(--radius-xs, 0.25rem);
   z-index: 2;
 }
 
@@ -331,9 +334,9 @@
   left: 12px;
   right: 12px;
   z-index: 2;
-  font-size: 1rem;
-  font-weight: 700;
-  color: #fff;
+  font-size: var(--font-size-4, 1rem);
+  font-weight: var(--font-weight-emphasized, 500);
+  color: var(--color-text-primary, #fbfafa);
   line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -343,9 +346,9 @@
 }
 
 .zk-card-title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #fff;
+  font-size: var(--font-size-3, 0.875rem);
+  font-weight: var(--font-weight-emphasized, 500);
+  color: var(--color-text-primary, #fbfafa);
   margin: 0 0 0.1875rem;
   line-height: 1.35;
   display: -webkit-box;
@@ -359,15 +362,15 @@
 }
 
 .zk-card-meta {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.45);
+  font-size: var(--font-size-2, 0.75rem);
+  color: var(--color-text-tertiary, #82919c);
   margin: 0;
   line-height: 1.4;
 }
 
 .zk-card-availability {
-  font-size: 0.6875rem;
-  color: rgba(255, 255, 255, 0.3);
+  font-size: var(--font-size-1, 0.625rem);
+  color: var(--color-text-tertiary, #82919c);
   margin: 0.125rem 0 0;
 }
 
@@ -382,7 +385,7 @@
 
 .zk-skeleton-card {
   flex: 0 0 260px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm, 0.5rem);
   overflow: hidden;
 }
 
@@ -396,7 +399,7 @@
   );
   background-size: 200% 100%;
   animation: zk-shimmer 1.5s ease-in-out infinite;
-  border-radius: 10px;
+  border-radius: var(--radius-sm, 0.5rem);
 }
 
 .zk-skeleton-text {
@@ -404,7 +407,7 @@
   width: 70%;
   margin-top: 0.5rem;
   background: rgba(255, 255, 255, 0.06);
-  border-radius: 4px;
+  border-radius: var(--radius-xs, 0.25rem);
 }
 
 @keyframes zk-shimmer {
@@ -416,8 +419,8 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 0.8125rem;
+  color: var(--color-text-tertiary, #82919c);
+  font-size: var(--font-size-3, 0.875rem);
   padding: 2rem 0;
 }
 
@@ -435,14 +438,14 @@
 }
 
 .zk-error {
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 0.8125rem;
+  color: var(--color-text-tertiary, #82919c);
+  font-size: var(--font-size-3, 0.875rem);
   padding: 1rem 0;
 }
 
 .zk-empty {
-  color: rgba(255, 255, 255, 0.35);
-  font-size: 0.8125rem;
+  color: var(--color-text-tertiary, #82919c);
+  font-size: var(--font-size-3, 0.875rem);
   padding: 1rem 0;
   font-style: italic;
 }
@@ -460,8 +463,8 @@
 }
 
 .zk-grid-count {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.3);
+  font-size: var(--font-size-2, 0.75rem);
+  color: var(--color-text-tertiary, #82919c);
 }
 
 .zk-grid {
@@ -501,12 +504,12 @@
 
 .zk-card--landscape {
   flex: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm, 0.5rem);
 }
 
 .zk-card--landscape .zk-card-image {
   aspect-ratio: 16 / 9;
-  border-radius: 8px;
+  border-radius: var(--radius-sm, 0.5rem);
 }
 
 /* Pagination */
@@ -518,12 +521,12 @@
 
 .zk-load-more {
   padding: 0.625rem 2rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #fff;
+  font-size: var(--font-size-3, 0.875rem);
+  font-weight: var(--font-weight-emphasized, 500);
+  color: var(--color-text-primary, #fbfafa);
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
+  border-radius: var(--radius-xs, 0.25rem);
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -560,7 +563,7 @@
 /* Grid skeletons */
 
 .zk-grid-skeleton-card {
-  border-radius: 10px;
+  border-radius: var(--radius-sm, 0.5rem);
   overflow: hidden;
 }
 
@@ -574,7 +577,7 @@
   );
   background-size: 200% 100%;
   animation: zk-shimmer 1.5s ease-in-out infinite;
-  border-radius: 10px;
+  border-radius: var(--radius-sm, 0.5rem);
 }
 
 .zk-grid-skeleton-text {
@@ -582,5 +585,5 @@
   width: 70%;
   margin-top: 0.5rem;
   background: rgba(255, 255, 255, 0.06);
-  border-radius: 4px;
+  border-radius: var(--radius-xs, 0.25rem);
 }
