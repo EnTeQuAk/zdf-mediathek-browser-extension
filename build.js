@@ -8,7 +8,7 @@ const config = {
   bundle: true,
   format: "iife",
   outfile: "dist/content.js",
-  target: "firefox115",
+  target: ["chrome120", "firefox115"],
   minify: !watch,
   sourcemap: watch ? "inline" : false,
 };
