@@ -115,9 +115,16 @@ export function createToolbar({ brands = [], onBrandChange, onSortChange, onType
   const filterBtn = document.createElement("button");
   filterBtn.className = "zk-filter-btn";
   filterBtn.type = "button";
-  filterBtn.title = "Bald verfügbar";
-  filterBtn.disabled = true;
+  filterBtn.title = "Filtern";
   filterBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`;
+  filterBtn.addEventListener("click", () => {
+    const nativeBtn = Array.from(document.querySelectorAll("button")).find(
+      (b) => b.textContent.trim() === "Filtern" && !b.closest("#zk-container"),
+    );
+    if (nativeBtn) {
+      nativeBtn.click();
+    }
+  });
   controls.appendChild(filterBtn);
 
   toolbar.appendChild(controls);

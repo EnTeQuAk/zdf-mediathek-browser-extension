@@ -76,7 +76,7 @@ describe("createToolbar", () => {
     expect(buttons[1].textContent).toBe("Serien");
   });
 
-  it("has a disabled filter icon button", () => {
+  it("has a filter icon button that delegates to ZDF native filter", () => {
     const toolbar = createToolbar({
       brands: [],
       onBrandChange: () => {},
@@ -86,7 +86,8 @@ describe("createToolbar", () => {
 
     const btn = toolbar.querySelector(".zk-filter-btn");
     expect(btn).not.toBeNull();
-    expect(btn.disabled).toBe(true);
+    expect(btn.disabled).toBe(false);
+    expect(btn.title).toBe("Filtern");
   });
 
   it("calls onSortChange with null for Empfohlen", () => {
