@@ -1,7 +1,7 @@
 #zk-container {
   position: relative;
   z-index: 1;
-  padding: 0.5rem 40px 64px;
+  padding: 1rem 56px 64px;
 }
 
 .zk-section {
@@ -39,9 +39,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem 1rem;
+  gap: 1rem;
   flex-wrap: wrap;
-  margin-bottom: 0.375rem;
+  margin-bottom: 1.25rem;
 }
 
 .zk-toolbar-filters {
