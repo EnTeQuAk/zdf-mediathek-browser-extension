@@ -69,6 +69,27 @@ export async function apiFetch(token, path, { signal } = {}) {
   throw lastError;
 }
 
+export async function fetchBrands(token, { path, limit = 20, signal } = {}) {
+  const params = new URLSearchParams({
+    "q": "*",
+    contentTypes: "brand",
+    hasVideo: "true",
+    paths: path,
+    sortBy: "views",
+    sortOrder: "desc",
+    limit: String(limit),
+  });
+  const cacheKey = `brands:${params}`;
+  const cached = cache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+  const data = await apiFetch(token, `/search/documents?${params}`, { signal });
+  const result = parseBrandResults(data);
+  cache.set(cacheKey, result, CACHE_TTL_MS);
+  return result;
+}
+
 export async function fetchContent(
   token,
   {
@@ -109,6 +130,21 @@ export async function fetchContent(
 
 export function clearCache() {
   cache.clear();
+}
+
+export function parseBrandResults(data) {
+  const results = data["http://zdf.de/rels/search/results"] || [];
+  return results.map((r) => {
+    const target = r["http://zdf.de/rels/target"] || {};
+    const image = target.teaserImageRef || {};
+    return {
+      title: target.teaserHeadline || target.title || "",
+      description: target.teasertext || "",
+      path: target.structureNodePath || "",
+      url: target.webCanonical || "",
+      image: pickImage(image.layouts, "landscape"),
+    };
+  });
 }
 
 export function parseSearchResults(data) {

@@ -78,8 +78,11 @@ function createBrandBar(brands, onChange) {
   const allPill = createPill("Alle", true);
   bar.appendChild(allPill);
 
+  const brandsByIndex = new Map();
   for (const brand of brands) {
-    bar.appendChild(createPill(brand, false));
+    const pill = createPill(brand.title, false);
+    brandsByIndex.set(pill, brand);
+    bar.appendChild(pill);
   }
 
   bar.addEventListener("click", (e) => {
@@ -90,7 +93,7 @@ function createBrandBar(brands, onChange) {
     for (const p of bar.querySelectorAll(".zk-pill")) {
       p.classList.toggle("zk-pill--active", p === pill);
     }
-    onChange(pill.dataset.brand || "");
+    onChange(brandsByIndex.get(pill) || null);
   });
 
   return bar;
@@ -100,10 +103,23 @@ export function createToolbar({ brands = [], onBrandChange, onSortChange, onType
   const toolbar = document.createElement("div");
   toolbar.className = "zk-toolbar";
 
-  // Left zone: brand pills
-  if (brands.length > 0) {
-    toolbar.appendChild(createBrandBar(brands, onBrandChange));
+  let brandBar = null;
+
+  function insertBrandBar(brandList) {
+    if (brandBar) {
+      brandBar.remove();
+    }
+    if (brandList.length > 0) {
+      brandBar = createBrandBar(brandList, onBrandChange);
+      toolbar.insertBefore(brandBar, toolbar.firstChild);
+    }
   }
+
+  if (brands.length > 0) {
+    insertBrandBar(brands);
+  }
+
+  toolbar.setBrands = (brandList) => insertBrandBar(brandList);
 
   // Right zone: sort links, type toggle, filter button
   const controls = document.createElement("div");

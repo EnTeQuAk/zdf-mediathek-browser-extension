@@ -1,5 +1,5 @@
 import { RESULTS_PER_PAGE, detectCurrentPage } from "./config.js";
-import { extractApiToken, fetchContent, clearCache } from "./api.js";
+import { extractApiToken, fetchContent, fetchBrands, clearCache } from "./api.js";
 import { createSection, renderCards, showSkeletons } from "./sections.js";
 import { createGrid, renderGridCards, showGridSkeletons, setGridMessage, updateGridCount } from "./grid.js";
 import { createPaginationButton, updatePaginationState } from "./pagination.js";
@@ -9,16 +9,12 @@ import { createToolbar } from "./toolbar.js";
 
 let activeController = null;
 
-function buildQuery(filter, brand) {
-  return [filter, brand].filter(Boolean).join(" ");
-}
-
 async function loadGrid(token, page, { filter, brand, sortBy, types, pageNum, signal }) {
-  const query = buildQuery(filter, brand);
+  const path = brand ? brand.path : page.apiPath;
   return fetchContent(token, {
-    query,
+    query: filter || "",
     limit: RESULTS_PER_PAGE,
-    path: page.apiPath,
+    path,
     sortBy,
     types,
     page: pageNum,
@@ -69,7 +65,7 @@ async function init() {
   container.appendChild(vorabSection);
 
   // State
-  let activeBrand = "";
+  let activeBrand = null;
   let activeSort = null;
   let activeType = "page-video";
   let currentPage = 1;
@@ -118,11 +114,11 @@ async function init() {
       }
 
       if (currentItems.length === 0) {
-        const query = buildQuery(detectActiveFilter(), activeBrand);
+        const label = activeBrand ? activeBrand.title : detectActiveFilter();
         setGridMessage(
           gridSection,
           "zk-empty",
-          query ? `Keine Inhalte für "${query}" gefunden.` : "Keine Inhalte gefunden.",
+          label ? `Keine Inhalte für "${label}" gefunden.` : "Keine Inhalte gefunden.",
         );
         updateGridCount(gridSection, 0, 0);
       } else {
@@ -184,9 +180,9 @@ async function init() {
     }
   }
 
-  // Toolbar
+  // Toolbar (brands loaded async, pills added when ready)
   const toolbar = createToolbar({
-    brands: page.brands,
+    brands: [],
     onBrandChange: (brand) => {
       activeBrand = brand;
       loadFirstPage();
@@ -210,6 +206,10 @@ async function init() {
 
   await loadFirstPage();
   observeFilterChanges(() => loadFirstPage());
+
+  fetchBrands(token, { path: page.apiPath }).then((brands) => {
+    toolbar.setBrands(brands);
+  });
 }
 
 function tryInit(attempts = 0) {

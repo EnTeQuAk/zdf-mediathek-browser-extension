@@ -19,44 +19,36 @@ export const CATEGORIES = [
   "Gesundheit",
 ];
 
-const DOKU_BRANDS = ["ZDFinfo Doku", "Terra X", "37 Grad", "Die Spur", "plan b", "frontal"];
-
 export const PAGES = [
   {
     pattern: "/dokus",
     apiPath: "/zdf/dokumentation",
     label: "Dokus",
-    brands: DOKU_BRANDS,
   },
   {
     pattern: "/dokumentation",
     apiPath: "/zdf/dokumentation",
     label: "Dokus",
-    brands: DOKU_BRANDS,
   },
   {
     pattern: "/wissen",
     apiPath: "/zdf/wissen",
     label: "Wissen",
-    brands: ["Terra X", "Leschs Kosmos", "TerraXplore"],
   },
   {
     pattern: "/gesellschaft",
     apiPath: "/zdf/gesellschaft",
     label: "Gesellschaft",
-    brands: ["37 Grad", "plan b", "Die Spur"],
   },
   {
     pattern: "/kultur",
     apiPath: "/zdf/kultur",
     label: "Kultur",
-    brands: [],
   },
   {
     pattern: "/geschichte",
     apiPath: "/zdf/geschichte",
     label: "Geschichte",
-    brands: ["ZDF-History", "Terra X"],
   },
 ];
 

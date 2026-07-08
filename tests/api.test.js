@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseSearchResults, pickImage } from "../src/api.js";
+import { parseSearchResults, pickImage, parseBrandResults } from "../src/api.js";
 
 const FIXTURE = {
   totalResultsCount: 42,
@@ -97,6 +97,77 @@ describe("parseSearchResults", () => {
   it("returns empty array for missing results key", () => {
     const items = parseSearchResults({});
     expect(items).toEqual([]);
+  });
+});
+
+const BRAND_FIXTURE = {
+  totalResultsCount: 103,
+  "http://zdf.de/rels/search/results": [
+    {
+      score: 11.0,
+      viewCount: 3782,
+      title: "Terra X - die Einzeldokus",
+      "http://zdf.de/rels/target": {
+        teaserHeadline: "Terra X - die Einzeldokus",
+        teasertext: "Faszinierende Geschichten aus Natur und Geschichte.",
+        structureNodePath: "/zdf/dokumentation/terra-x",
+        webCanonical: "https://www.zdf.de/dokumentation/terra-x-104",
+        teaserImageRef: {
+          layouts: {
+            "384x216": "https://img.zdf.de/terra-x-384x216.jpg",
+          },
+        },
+      },
+    },
+    {
+      score: 8.5,
+      viewCount: 569,
+      title: "37 Grad - die Einzeldokus",
+      "http://zdf.de/rels/target": {
+        teaserHeadline: "37 Grad - die Einzeldokus",
+        teasertext: "Nah dran am Leben.",
+        structureNodePath: "/zdf/dokumentation/37-grad",
+        webCanonical: "https://www.zdf.de/dokumentation/37-grad-100",
+        teaserImageRef: {},
+      },
+    },
+    {
+      score: 5.0,
+      viewCount: 0,
+      title: "Minimal Brand",
+      "http://zdf.de/rels/target": {
+        title: "Minimal Brand",
+        teaserImageRef: {},
+      },
+    },
+  ],
+};
+
+describe("parseBrandResults", () => {
+  it("maps API response to brand objects", () => {
+    const brands = parseBrandResults(BRAND_FIXTURE);
+    expect(brands).toHaveLength(3);
+
+    const first = brands[0];
+    expect(first.title).toBe("Terra X - die Einzeldokus");
+    expect(first.description).toBe("Faszinierende Geschichten aus Natur und Geschichte.");
+    expect(first.path).toBe("/zdf/dokumentation/terra-x");
+    expect(first.url).toBe("https://www.zdf.de/dokumentation/terra-x-104");
+    expect(first.image).toBe("https://img.zdf.de/terra-x-384x216.jpg");
+  });
+
+  it("handles missing fields gracefully", () => {
+    const brands = parseBrandResults(BRAND_FIXTURE);
+    const minimal = brands[2];
+    expect(minimal.title).toBe("Minimal Brand");
+    expect(minimal.description).toBe("");
+    expect(minimal.path).toBe("");
+    expect(minimal.url).toBe("");
+    expect(minimal.image).toBe("");
+  });
+
+  it("returns empty array for missing results key", () => {
+    expect(parseBrandResults({})).toEqual([]);
   });
 });
 

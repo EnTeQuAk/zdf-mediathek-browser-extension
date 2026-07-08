@@ -8,7 +8,10 @@ describe("createToolbar", () => {
 
   it("creates toolbar with filters and controls zones", () => {
     const toolbar = createToolbar({
-      brands: ["Terra X", "37 Grad"],
+      brands: [
+        { title: "Terra X", path: "/zdf/dokumentation/terra-x" },
+        { title: "37 Grad", path: "/zdf/dokumentation/37-grad" },
+      ],
       onBrandChange: () => {},
       onSortChange: () => {},
       onTypeChange: () => {},
@@ -21,7 +24,7 @@ describe("createToolbar", () => {
 
   it("puts brand pills in the filters zone (left)", () => {
     const toolbar = createToolbar({
-      brands: ["Terra X"],
+      brands: [{ title: "Terra X", path: "/zdf/dokumentation/terra-x" }],
       onBrandChange: () => {},
       onSortChange: () => {},
       onTypeChange: () => {},
@@ -162,10 +165,14 @@ describe("createToolbar", () => {
     expect(onTypeChange).toHaveBeenCalledWith("page-index");
   });
 
-  it("calls onBrandChange when pill is clicked", () => {
+  it("calls onBrandChange with brand object when pill is clicked", () => {
     const onBrandChange = vi.fn();
+    const brands = [
+      { title: "Terra X", path: "/zdf/dokumentation/terra-x" },
+      { title: "37 Grad", path: "/zdf/dokumentation/37-grad" },
+    ];
     const toolbar = createToolbar({
-      brands: ["Terra X", "37 Grad"],
+      brands,
       onBrandChange,
       onSortChange: () => {},
       onTypeChange: () => {},
@@ -174,13 +181,14 @@ describe("createToolbar", () => {
 
     const pills = toolbar.querySelectorAll(".zk-pill");
     pills[1].click();
-    expect(onBrandChange).toHaveBeenCalledWith("Terra X");
+    expect(onBrandChange).toHaveBeenCalledWith(brands[0]);
   });
 
-  it("calls onBrandChange with empty string for Alle", () => {
+  it("calls onBrandChange with null for Alle", () => {
     const onBrandChange = vi.fn();
+    const brands = [{ title: "Terra X", path: "/zdf/dokumentation/terra-x" }];
     const toolbar = createToolbar({
-      brands: ["Terra X"],
+      brands,
       onBrandChange,
       onSortChange: () => {},
       onTypeChange: () => {},
@@ -190,12 +198,41 @@ describe("createToolbar", () => {
     const pills = toolbar.querySelectorAll(".zk-pill");
     pills[1].click();
     pills[0].click();
-    expect(onBrandChange).toHaveBeenLastCalledWith("");
+    expect(onBrandChange).toHaveBeenLastCalledWith(null);
+  });
+
+  it("setBrands adds brand pills dynamically", () => {
+    const onBrandChange = vi.fn();
+    const toolbar = createToolbar({
+      brands: [],
+      onBrandChange,
+      onSortChange: () => {},
+      onTypeChange: () => {},
+    });
+    document.body.appendChild(toolbar);
+
+    expect(toolbar.querySelector(".zk-toolbar-filters")).toBeNull();
+
+    toolbar.setBrands([
+      { title: "Terra X", path: "/zdf/dokumentation/terra-x" },
+      { title: "37 Grad", path: "/zdf/dokumentation/37-grad" },
+    ]);
+
+    const filters = toolbar.querySelector(".zk-toolbar-filters");
+    expect(filters).not.toBeNull();
+    const pills = filters.querySelectorAll(".zk-pill");
+    expect(pills.length).toBe(3);
+    expect(pills[0].textContent).toBe("Alle");
+    expect(pills[1].textContent).toBe("Terra X");
+    expect(pills[2].textContent).toBe("37 Grad");
+
+    pills[1].click();
+    expect(onBrandChange).toHaveBeenCalledWith({ title: "Terra X", path: "/zdf/dokumentation/terra-x" });
   });
 
   it("controls zone is after filters zone in DOM order", () => {
     const toolbar = createToolbar({
-      brands: ["Terra X"],
+      brands: [{ title: "Terra X", path: "/zdf/dokumentation/terra-x" }],
       onBrandChange: () => {},
       onSortChange: () => {},
       onTypeChange: () => {},
